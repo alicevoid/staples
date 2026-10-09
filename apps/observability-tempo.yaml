@@ -1,6 +1,6 @@
-# Tempo (traces, single-binary). RE-ENABLED in this migration — it was commented out in
-# observability.nix yet still Running on-cluster (the drift that motivated moving to Argo).
-# Putting it in staples makes git and reality agree. Runbook step 5.
+# Tempo (traces, single-binary). Plain YAML under monitoring/tempo/. RE-ENABLED in this
+# migration — it was commented out in observability.nix yet still Running on-cluster (the drift
+# that motivated moving to Argo). Runbook step 5.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,16 +10,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: tempo
-      targetRevision: 1.24.4
-      helm:
-        valueFiles:
-          - $values/charts/tempo/values.yaml
-    - repoURL: https://github.com/alicevoid/staples
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: monitoring/tempo
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

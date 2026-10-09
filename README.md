@@ -16,17 +16,31 @@ app workloads   staples (this repo)  ArgoCD               every app, chart, and 
 
 ## Layout
 
+Workloads are grouped `<purpose>/<tool>/<component>.yaml` (makko-style). Argo Application CRs
+stay central in `apps/`, each pointing at its tool dir:
+
 ```
 bootstrap/root.yaml   root app-of-apps -> apps/  (mirrors sutures' argocd.nix; that addon applies it)
 apps/                 one Argo Application per workload (sync-wave ordered)
-manifests/            plain k8s YAML: whoami, memos, karakeep, authelia (+redis), routing
-charts/               Helm values: kube-prometheus-stack, loki, alloy, tempo
+auth/
+  authelia/           namespace, pvcs, configmap, deployment, service, redis
+monitoring/
+  kube-prometheus-stack/values.yaml    # the one Helm app (chart is huge: operator + CRDs + rules)
+  loki/  alloy/  tempo/                 # plain YAML, rendered from their charts (no Helm needed)
+default/
+  memos/  karakeep/   the user-facing apps
+  routing/            all IngressRoutes + per-ns Authelia forwardAuth Middlewares
 ```
 
-`apps/` → `manifests/` (directory Applications) and `charts/` (Helm multi-source: chart from
-the upstream repo, `values.yaml` from here via `$values`). Routing (IngressRoutes + the
-per-namespace Authelia forwardAuth Middlewares) is isolated in `manifests/routing/` so a
-future Cilium / Gateway-API swap touches one directory.
+Why these names: `default/` is the catch-all (incl. routing — parked here on purpose, since
+Cilium + Gateway API will soon rewrite these Traefik routes into `HTTPRoute`s under a future
+`gateway/`; no point minting a `networking/` category for something about to be replaced).
+`argocd/` is reserved for Argo's own extras (a future `argocd.pvc.tools` route, AppProjects) —
+the install itself is Nix, so it's empty until then.
+
+Only **kube-prometheus-stack** uses Helm (via Argo multi-source: chart upstream + `values.yaml`
+here through `$values`). loki/alloy/tempo were rendered once with `helm template` and committed
+as plain manifests — re-render on a version bump rather than hand-editing.
 
 ## Secrets — none live here (public-safe repo)
 
@@ -72,10 +86,10 @@ those PVs to `Retain` first.
 
 ```bash
 # Back up the on-disk dirs (dir name = <pv>_<ns>_<claim>):
-ssh pharika sudo tar czf /tmp/memos.tgz     -C /var/lib/rancher/k3s/storage pvc-7893d874-26de-45fc-b21f-86790c393b10_memos_memos-data
-ssh pharika sudo tar czf /tmp/karakeep.tgz  -C /var/lib/rancher/k3s/storage pvc-c9dc2b71-8376-4475-97e7-3e931d886a12_karakeep_karakeep-data
-ssh pharika sudo tar czf /tmp/authelia.tgz  -C /var/lib/rancher/k3s/storage pvc-932d57f2-dfcd-4dda-a4aa-d25fca6c792d_authelia_authelia-data
-ssh pharika sudo tar czf /tmp/grafana.tgz   -C /var/lib/rancher/k3s/storage pvc-75f1dbb2-f9c1-491e-99eb-f1ff7ad3f309_monitoring_kube-prometheus-stack-grafana
+sudo tar czf /tmp/memos.tgz     -C /var/lib/rancher/k3s/storage pvc-7893d874-26de-45fc-b21f-86790c393b10_memos_memos-data
+sudo tar czf /tmp/karakeep.tgz  -C /var/lib/rancher/k3s/storage pvc-c9dc2b71-8376-4475-97e7-3e931d886a12_karakeep_karakeep-data
+sudo tar czf /tmp/authelia.tgz  -C /var/lib/rancher/k3s/storage pvc-932d57f2-dfcd-4dda-a4aa-d25fca6c792d_authelia_authelia-data
+sudo tar czf /tmp/grafana.tgz   -C /var/lib/rancher/k3s/storage pvc-75f1dbb2-f9c1-491e-99eb-f1ff7ad3f309_monitoring_kube-prometheus-stack-grafana
 # (copy the tarballs somewhere off-box too)
 
 # Flip must-preserve PVs to Retain so a prune can't destroy them:
@@ -115,14 +129,16 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443   # UI at https://loca
 
 The root app-of-apps appears and creates every child Application (all OutOfSync/manual).
 
-### 2 · Prove the loop (whoami, zero risk)
+### 2 · Confirm the loop
+
+The git -> Argo -> cluster loop is already proven: the root app-of-apps pulled `apps/` from
+GitHub and created every child Application. Just confirm the roster:
 
 ```bash
-argocd app sync whoami && kubectl -n whoami get pods     # Running = git -> Argo -> cluster works
-# then retire it:
-git -C ~/staples rm apps/_whoami.yaml -r manifests/whoami && git -C ~/staples commit -m "drop whoami smoke-test" && git -C ~/staples push
-argocd app delete whoami --cascade   # safe: no data
+kubectl -n argocd get applications      # root Synced; children OutOfSync (manual) / Healthy
 ```
+
+(There's no `whoami` smoke-test app — root fanning out is the same proof, so it was dropped.)
 
 ### 3 · routing — adopt FIRST, with self-heal (prevents a public-route gap)
 
@@ -169,19 +185,31 @@ Same recipe as memos (2 PVCs incl. the 50Gi `karakeep-data`; meili-data is rebui
 `argocd app diff karakeep` → sync → drop `./karakeep.nix` + rebuild → `argocd app sync routing`
 → verify remount + `https://karakeep.pvc.tools` → enable auto-sync.
 
-### 6 · observability (the 4 Helm Applications)
+### 6 · observability (kps Helm + loki/alloy/tempo plain)
 
-Grafana PVC is backed up (step 0); prometheus/loki/tempo may reset — acceptable.
+Unlike the stateful apps, this one is **drop-Nix-first, then Argo-sync** (a reset-and-recreate,
+not an adopt). Reason: the live LGTM stack is 4 Nix *Helm releases*; our Argo versions render
+to the same object names, so syncing while the Nix releases still exist means fighting over
+ownership. Cleaner to let k3s `helm uninstall` them, then let Argo install fresh. Grafana PVC is
+backed up + Retain'd (step 0); prometheus/loki/tempo data resets — acceptable (short retention).
+Expect a brief monitoring gap; it's non-critical.
 
 ```bash
-for a in observability-kps observability-loki observability-alloy observability-tempo; do argocd app diff $a; done
-argocd app sync observability-kps     # ServerSideApply already set on the App
-argocd app sync observability-loki observability-alloy observability-tempo
-# drop observability.nix from Nix (removes the autoDeployCharts + grafana-route), rebuild:
-#   git rm modules/k8s/observability.nix and drop it from default.nix imports
+# 1) remove observability.nix from Nix + rebuild -> k3s helm-uninstalls all 4 releases.
+#    (CRDs survive uninstall; Prometheus/Alertmanager/loki/tempo PVCs are deleted — grafana's PV
+#     is Retain'd so its data survives even as the PVC goes.)
+#    git rm modules/k8s/observability.nix and drop ./observability.nix from default.nix imports
 sudo nixos-rebuild switch --flake ~/sutures#pharika
-argocd app sync routing   # re-assert the grafana route k3s just pruned
-# verify Grafana remounts its PVC, dashboards intact, https://grafana.pvc.tools logs in via Authelia
+
+# 2) install the stack under Argo (kps is Helm+ServerSideApply; the other 3 are plain YAML):
+argocd app sync observability-kps --core
+argocd app sync observability-loki observability-alloy observability-tempo --core
+
+# 3) restore Grafana data: rebind its retained PV to the fresh kube-prometheus-stack-grafana PVC
+#    (clear the old claimRef + set spec.volumeName), or restore /tmp/grafana.tgz into the new PV.
+#    Then re-assert the grafana route k3s pruned with the module:
+argocd app sync routing --core
+# verify: dashboards intact, https://grafana.pvc.tools logs in via Authelia, tempo now present.
 ```
 
 Note: the grafana route is already Argo-owned since step 3 — the `argocd app sync routing`

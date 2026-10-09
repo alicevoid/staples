@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/alicevoid/staples
     targetRevision: main
-    path: manifests/karakeep
+    path: default/karakeep
   destination:
     server: https://kubernetes.default.svc
     namespace: karakeep

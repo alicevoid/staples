@@ -1,4 +1,5 @@
-# Loki (log storage, SingleBinary). Runbook step 5.
+# Loki (log storage, SingleBinary). Plain YAML (rendered from the chart, committed under
+# monitoring/loki/) — no Helm dependency. Runbook step 5.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,16 +9,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: loki
-      targetRevision: 7.3.0
-      helm:
-        valueFiles:
-          - $values/charts/loki/values.yaml
-    - repoURL: https://github.com/alicevoid/staples
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: monitoring/loki
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

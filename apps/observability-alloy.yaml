@@ -1,4 +1,4 @@
-# Alloy (log collection DaemonSet -> Loki). Runbook step 5.
+# Alloy (log collection DaemonSet -> Loki). Plain YAML under monitoring/alloy/. Runbook step 5.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,16 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: alloy
-      targetRevision: 1.13.0
-      helm:
-        valueFiles:
-          - $values/charts/alloy/values.yaml
-    - repoURL: https://github.com/alicevoid/staples
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: monitoring/alloy
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
