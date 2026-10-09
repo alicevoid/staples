@@ -1,5 +1,5 @@
-# karakeep web (exposed) — the UI + API. Reaches meilisearch + chrome by service DNS.
-#   OIDC SSO via Authelia; karakeep's own login stays on as break-glass (don't disable it).
+# karakeep web (exposed): UI + API. Reaches meilisearch + chrome by service DNS.
+#   OIDC SSO via Authelia; karakeep's own login stays on as break-glass.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,9 +55,9 @@ spec:
             - name: BROWSER_WEB_URL
               value: http://chrome:9222
             - name: MAX_ASSET_SIZE_MB
-              value: "1024"   # allow up to 1GB uploads
-            # AI auto-tagging is off (no inference backend set). To enable, add
-            # OPENAI_API_KEY (or OLLAMA_BASE_URL + INFERENCE_TEXT_MODEL) via karakeep-secrets.
+              value: "1024"   # 1GB uploads
+            # AI auto-tagging is off (no inference backend). To enable, add OPENAI_API_KEY
+            # (or OLLAMA_BASE_URL + INFERENCE_TEXT_MODEL) via karakeep-secrets.
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -75,7 +75,7 @@ spec:
           persistentVolumeClaim:
             claimName: karakeep-data
 ---
-# LoadBalancer: klipper binds :3000 on the host -> un-gated tailnet fallback.
+# LoadBalancer: klipper binds :3000 on the host as an un-gated tailnet fallback.
 apiVersion: v1
 kind: Service
 metadata:

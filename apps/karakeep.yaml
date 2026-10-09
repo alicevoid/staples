@@ -1,5 +1,4 @@
-# karakeep — 2 PVCs (karakeep-data 50Gi, meili-data 2Gi) + chrome/meilisearch sidecars.
-# Runbook step 4. Manual + prune:false until adoption + the 50Gi data remount are verified.
+# karakeep: bookmarks (web + meilisearch + chrome, 2 PVCs). Manifests in default/karakeep.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -17,8 +16,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: karakeep
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
-    # automated:        # <- uncomment AFTER adoption + data verified
-    #   prune: true
-    #   selfHeal: true

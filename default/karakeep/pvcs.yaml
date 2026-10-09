@@ -12,7 +12,7 @@ spec:
     requests:
       storage: 50Gi
 ---
-# meili-data: Meilisearch's search index (rebuildable from karakeep if lost).
+# meili-data: meilisearch index (rebuildable from karakeep if lost).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

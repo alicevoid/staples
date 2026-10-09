@@ -1,5 +1,5 @@
-# auth.pvc.tools — the Authelia login portal itself. NO forwardAuth gate on this one
-# (it IS the gate). Wildcard LE cert via the `le` resolver (Traefik controller, in Nix).
+# auth.pvc.tools: the Authelia login portal. No forwardAuth gate here (it is the gate).
+# Wildcard LE cert via the "le" resolver (Traefik controller, in Nix).
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

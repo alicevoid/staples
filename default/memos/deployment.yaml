@@ -1,4 +1,4 @@
-# Memos — notes app. Data (sqlite + attachments) on the memos-data PVC.
+# memos: notes app. Data (sqlite + attachments) on the memos-data PVC.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +7,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate   # RWO volume can't attach to two pods at once
+    type: Recreate   # RWO volume: one pod at a time
   selector:
     matchLabels:
       app: memos
@@ -18,11 +18,11 @@ spec:
     spec:
       containers:
         - name: memos
-          image: neosmemo/memos:stable   # moving tag (matches live); pin a version for reproducible upgrades
+          image: neosmemo/memos:stable   # moving tag; pin a version for reproducible upgrades
           env:
             - name: MEMOS_MODE
               value: prod
-            # MEMOS_PORT must be set explicitly — unset binds port 0 ("running on port 0").
+            # MEMOS_PORT must be set explicitly; unset binds port 0 ("running on port 0")
             - name: MEMOS_PORT
               value: "5230"
             - name: MEMOS_DATA
@@ -31,7 +31,7 @@ spec:
             - containerPort: 5230
           volumeMounts:
             - name: data
-              mountPath: /var/opt/memos   # Memos' default data dir
+              mountPath: /var/opt/memos   # memos' default data dir
       volumes:
         - name: data
           persistentVolumeClaim:

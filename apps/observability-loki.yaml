@@ -1,5 +1,4 @@
-# Loki (log storage, SingleBinary). Plain YAML (rendered from the chart, committed under
-# monitoring/loki/) — no Helm dependency. Runbook step 5.
+# loki: log storage (SingleBinary). Plain YAML in monitoring/loki (rendered from the chart).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -17,8 +16,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
-    # automated:
-    #   prune: true
-    #   selfHeal: true

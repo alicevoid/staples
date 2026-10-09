@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path   # k3s built-in on-box provisioner
+  storageClassName: local-path   # k3s on-box provisioner
   resources:
     requests:
       storage: 2Gi

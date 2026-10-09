@@ -1,4 +1,4 @@
-# authelia-data: sqlite auth DB (users' TOTP devices, etc.) + notifier state.
+# authelia-data: sqlite auth DB (users, TOTP devices) + notifier state.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,7 +12,7 @@ spec:
     requests:
       storage: 1Gi
 ---
-# redis-data: session store (appendonly) so an Authelia restart doesn't log everyone out.
+# redis-data: session store (appendonly), so an Authelia restart doesn't log everyone out.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

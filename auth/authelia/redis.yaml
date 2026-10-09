@@ -1,5 +1,5 @@
-# Redis — Authelia's session store (survives restarts; appendonly + PVC).
-#   ClusterIP-only and never firewalled out, so no password (would be ceremony).
+# redis: Authelia's session store (survives restarts; appendonly + PVC).
+#   ClusterIP-only and never firewalled out, so no password.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

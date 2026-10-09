@@ -1,7 +1,6 @@
 # Authelia non-secret config. Who-can-log-in + OIDC/SMTP/session secrets live in the
-# out-of-band `authelia-secrets` Secret (mounted at /secrets), merged in as a 2nd --config.
-# Content mirrors the live cluster verbatim so Argo adopts with no diff. The deeper "why"
-# behind each knob lives in the Obsidian QUIRKS/AUTHELIA notes, not inline here.
+# out-of-band authelia-secrets Secret (mounted at /secrets), merged in as a 2nd --config.
+# The deeper "why" behind each knob is in the Obsidian AUTHELIA/QUIRKS notes, not inline.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,7 +33,7 @@ data:
             - karakeep.pvc.tools
             - grafana.pvc.tools
             - traefik.pvc.tools
-          # password + TOTP — a leaked password alone can't get in
+          # password + TOTP, so a leaked password alone can't get in
           policy: two_factor
           subject:
             - group:friends
@@ -67,10 +66,10 @@ data:
       local:
         path: /data/db.sqlite3
 
-    # SMTP notifier (SMTP2GO) — enrol/reset emails for self-service. only the pw is secret
+    # SMTP notifier (SMTP2GO) for enrol/reset emails (self-service). only the pw is secret
     notifier:
       smtp:
         address: 'submission://mail.smtp2go.com:2525' # 2525 dodges ISP blocking of 25/587
-        username: 'auth.pvc.tools' # the SMTP2GO SMTP user (their usernames are globally unique)
+        username: 'auth.pvc.tools' # the SMTP2GO SMTP user (globally unique across SMTP2GO)
         sender: 'Authelia <no-reply@pvc.tools>'
         subject: '[Authelia] {title}'

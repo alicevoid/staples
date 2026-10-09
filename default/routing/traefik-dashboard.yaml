@@ -1,7 +1,6 @@
-# traefik.pvc.tools (Authelia-gated) -> api@internal (the Traefik dashboard, at /dashboard/).
-#   Lives in kube-system because that's where the Traefik controller (api@internal) runs.
-#   NOTE: this is the one routing object in kube-system — kept here with the rest of
-#   routing so a future Gateway-API swap touches only manifests/routing/.
+# traefik.pvc.tools (Authelia-gated) -> api@internal (Traefik dashboard, at /dashboard/).
+# Lives in kube-system because that's where the Traefik controller runs. Kept here with the
+# rest of routing so a future Gateway-API swap touches one directory.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

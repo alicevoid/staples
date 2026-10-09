@@ -1,6 +1,4 @@
-# Tempo (traces, single-binary). Plain YAML under monitoring/tempo/. RE-ENABLED in this
-# migration — it was commented out in observability.nix yet still Running on-cluster (the drift
-# that motivated moving to Argo). Runbook step 5.
+# tempo: traces (single binary), OTLP on :4317/:4318. Plain YAML in monitoring/tempo.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -18,8 +16,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
-    # automated:
-    #   prune: true
-    #   selfHeal: true

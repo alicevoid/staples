@@ -1,9 +1,8 @@
-# kube-prometheus-stack (Prometheus + Grafana + Alertmanager). Helm chart from upstream +
-# values from this repo (Argo multi-source). Runbook step 5.
-#
-# ServerSideApply=true is REQUIRED: the prometheus-operator CRDs are huge and blow the
-# client-side "metadata.annotations too long" limit. Back up the Grafana PVC before syncing;
-# prometheus/alertmanager data may reset.
+# kube-prometheus-stack: Prometheus + Grafana + Alertmanager. The one Helm app (Argo
+#   multi-source: upstream chart + values from this repo via $values).
+#   releaseName MUST match the Nix release name or Argo builds a parallel stack instead of
+#   adopting (see README). ServerSideApply=true: the operator CRDs exceed the client-side
+#   annotation-size limit.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -18,9 +17,6 @@ spec:
       chart: kube-prometheus-stack
       targetRevision: 91.8.1
       helm:
-        # Match the Nix Helm release name so Argo ADOPTS the existing stack
-        # (objects stay `kube-prometheus-stack-*`) instead of standing up a
-        # parallel `observability-kps-*` copy.
         releaseName: kube-prometheus-stack
         valueFiles:
           - $values/monitoring/kube-prometheus-stack/values.yaml
@@ -31,9 +27,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-    # automated:        # <- uncomment AFTER adoption + Grafana data verified
-    #   prune: true
-    #   selfHeal: true

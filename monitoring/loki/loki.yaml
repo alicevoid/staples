@@ -1,8 +1,6 @@
-# loki: plain YAML rendered from the grafana/loki Helm chart v7.3.0.
-# Kept as plain manifests so ArgoCD needs no Helm for it. Do NOT hand-edit piecemeal —
-# re-render after a version bump instead (else it drifts from the chart):
+# loki: rendered from the grafana/loki chart v7.3.0 (plain YAML so Argo needs no Helm).
+# Do not hand-edit; re-render on a version bump instead (values recorded in the ARGOCD note):
 #   helm template loki grafana/loki --version <NEW> -n monitoring -f <values>
-# The input values are recorded in the ArgoCD migration notes (ARGOCD.md).
 ---
 # Source: loki/templates/serviceaccount.yaml
 apiVersion: v1

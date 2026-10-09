@@ -1,6 +1,6 @@
-# Meilisearch (internal) — karakeep's search index.
-#   Pinned to the version karakeep's upstream compose uses (v1.41.0): the on-disk
-#   index format is version-sensitive, so bump it in lockstep with karakeep.
+# meilisearch (internal): karakeep's search index.
+#   Pinned to the version karakeep's upstream compose uses (v1.41.0); the on-disk index
+#   format is version-sensitive, so bump it in lockstep with karakeep.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

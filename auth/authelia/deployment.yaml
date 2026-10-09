@@ -1,4 +1,4 @@
-# Authelia — SSO login-wall + OIDC provider for *.pvc.tools.
+# authelia: SSO login-wall + OIDC provider for *.pvc.tools.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,16 +16,16 @@ spec:
       labels:
         app: authelia
     spec:
-      # k8s injects AUTHELIA_* service env vars; Authelia reads every AUTHELIA_*
-      # as config and refuses to start on the collision. Turn the injection off.
+      # k8s injects AUTHELIA_* service env vars; Authelia reads every AUTHELIA_* as config and
+      # refuses to start on the collision. Turn the injection off.
       enableServiceLinks: false
       securityContext:
         fsGroup: 1000   # let it write the PVC regardless of uid
       containers:
         - name: authelia
           image: ghcr.io/authelia/authelia:4.39.28   # pin; bump deliberately
-          # second --config pulls the OIDC block (hmac/jwks/clients) from the
-          # Secret, out of this public repo. /secrets/oidc.yml MUST exist or Authelia won't start.
+          # second --config pulls the OIDC block (hmac/jwks/clients) from the Secret, out of
+          # this public repo. /secrets/oidc.yml MUST exist or Authelia won't start.
           args:
             - --config
             - /config/configuration.yml
@@ -68,8 +68,8 @@ spec:
           persistentVolumeClaim:
             claimName: authelia-data
 ---
-# Traefik + the forwardAuth middleware reach Authelia here. :80 -> 9091 so the
-# middleware URL can omit the port.
+# Traefik + the forwardAuth middleware reach Authelia here. :80 -> 9091 so the middleware
+# URL can omit the port.
 apiVersion: v1
 kind: Service
 metadata:

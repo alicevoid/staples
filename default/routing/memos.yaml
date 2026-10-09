@@ -1,5 +1,5 @@
-# memos.pvc.tools (Authelia-gated). The forwardAuth Middleware is per-namespace to
-# dodge cross-ns Traefik permissions; it's identical in every gated namespace.
+# memos.pvc.tools (Authelia-gated). The forwardAuth Middleware is per-namespace to avoid
+# cross-namespace Traefik permission issues; it is identical in every gated namespace.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

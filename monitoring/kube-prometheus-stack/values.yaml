@@ -1,16 +1,14 @@
 # kube-prometheus-stack values (chart 91.8.1). Mirrors the live `helm get values`.
 # Admin + OAuth client secrets come from out-of-band Secrets (grafana-admin, grafana-oauth).
-#
-# NOTE: the Argo Application for this chart sets syncOptions ServerSideApply=true — the
-# prometheus-operator CRDs blow the client-side "metadata.annotations too long" limit.
+# The Argo app sets ServerSideApply=true (the operator CRDs exceed the client-side limit).
 grafana:
   # admin login from the grafana-admin Secret (not this repo)
   admin:
     existingSecret: grafana-admin
     userKey: admin-user
     passwordKey: admin-password
-  # serve under the public hostname, else cross-host login = "origin not allowed"
   env:
+    # serve under the public hostname, else cross-host login = "origin not allowed"
     GF_SERVER_ROOT_URL: https://grafana.pvc.tools
     GF_SERVER_DOMAIN: grafana.pvc.tools
     # OIDC SSO via Authelia (generic_oauth). grafana-admin login stays as break-glass.
@@ -27,9 +25,8 @@ grafana:
     GF_AUTH_GENERIC_OAUTH_USE_PKCE: "true"
     GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: InHeader
     GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
-    # Authelia 'admins' group -> Grafana Admin, everyone else -> Viewer.
+    # Authelia 'admins' group -> Grafana Admin, everyone else -> Viewer
     GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups[*], 'admins') && 'Admin' || 'Viewer'"
-  # client secret from the grafana-oauth Secret
   envValueFrom:
     GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
       secretKeyRef:
@@ -39,15 +36,14 @@ grafana:
     enabled: true
     storageClassName: local-path
     size: 5Gi
-  # Prometheus is auto-added as the default datasource; wire the rest.
+  # Prometheus is the default datasource; wire the rest.
   additionalDataSources:
     - name: Loki
       type: loki
       uid: loki
       access: proxy
       url: http://loki.monitoring.svc:3100
-    # Tempo re-enabled in the Argo migration (was commented out under Nix). Links
-    # traces -> logs via the Loki datasource.
+    # Tempo re-enabled in the Argo migration (was commented out under Nix).
     - name: Tempo
       type: tempo
       uid: tempo

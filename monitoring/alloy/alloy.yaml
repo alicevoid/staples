@@ -1,8 +1,6 @@
-# alloy: plain YAML rendered from the grafana/alloy Helm chart v1.13.0.
-# Kept as plain manifests so ArgoCD needs no Helm for it. Do NOT hand-edit piecemeal —
-# re-render after a version bump instead (else it drifts from the chart):
+# alloy: rendered from the grafana/alloy chart v1.13.0 (plain YAML so Argo needs no Helm).
+# Do not hand-edit; re-render on a version bump instead (values recorded in the ARGOCD note):
 #   helm template alloy grafana/alloy --version <NEW> -n monitoring -f <values>
-# The input values are recorded in the ArgoCD migration notes (ARGOCD.md).
 ---
 # Source: alloy/templates/serviceaccount.yaml
 apiVersion: v1

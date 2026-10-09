@@ -1,6 +1,6 @@
-# Headless Chrome (internal, stateless) — crawls saved links.
-#   flags mirror upstream compose; the image already enables debug on :9222.
-#   chrome is the OOM risk here, hence the 1Gi cap.
+# chrome (internal, stateless): headless browser that crawls saved links.
+#   Flags mirror upstream compose; the image already enables debug on :9222. Chrome is the
+#   OOM risk here, hence the 1Gi cap.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: chrome
-          image: ghcr.io/karakeep-app/karakeep-chrome:release   # upstream only ships a floating `release` tag
+          image: ghcr.io/karakeep-app/karakeep-chrome:release   # upstream ships only a floating release tag
           args:
             - --disable-gpu
             - --disable-dev-shm-usage
