@@ -1,0 +1,93 @@
+# Authelia non-secret config. Who-can-log-in + OIDC/SMTP/session secrets live in the
+# out-of-band `authelia-secrets` Secret (mounted at /secrets), merged in as a 2nd --config.
+# Content is verbatim from the live cluster so Argo adopts with no diff.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authelia-config
+  namespace: authelia
+data:
+  configuration.yml: |
+    theme: auto
+
+    server:
+      address: tcp://0.0.0.0:9091
+
+    log:
+      level: info
+
+    totp:
+      issuer: pvc.tools
+
+    # WHO can log in: usernames + argon2 password hashes live in the
+    # out-of-repo Secret, mounted at /secrets/users_database.yml.
+    authentication_backend:
+      file:
+        path: /secrets/users_database.yml
+
+    # WHO can reach WHAT. default deny = nobody unless a rule allows them.
+    # Rules are evaluated top-down; first match wins. "friends not the world."
+    access_control:
+      default_policy: deny
+      rules:
+        - domain:
+            - memos.pvc.tools
+            - karakeep.pvc.tools
+            - grafana.pvc.tools
+            - traefik.pvc.tools
+          # two_factor = password + TOTP. This is what stops an unknown device
+          # with only a leaked/guessed password: it can't pass without the
+          # authenticator code. Users enrol a TOTP app on first login.
+          # (All four apps share this tier: friends + admins.)
+          policy: two_factor
+          subject:
+            - group:friends
+            - group:admins
+
+    # Session cookie shared across *.pvc.tools -> single sign-on. Tuned for
+    # "quiet": a remembered device stays signed in for ~3 months, so you log
+    # in (with TOTP) roughly once a quarter per device.
+    session:
+      # Keep sessions in Redis (see the redis Deployment below) instead of
+      # in-memory, so an Authelia restart/upgrade does NOT log everyone out —
+      # the #1 source of silent friction before. Redis is cluster-internal
+      # (ClusterIP, never firewalled out), so no password is configured.
+      redis:
+        host: redis.authelia.svc.cluster.local
+        port: 6379
+      cookies:
+        - domain: pvc.tools
+          authelia_url: https://auth.pvc.tools
+          # No default_redirection_url: a DIRECT login at auth.pvc.tools lands on
+          # Authelia's own portal (manage 2FA, etc.) instead of auto-bouncing into
+          # an app. App-initiated logins still return to their app via `rd`.
+          name: authelia_session
+          same_site: lax
+          inactivity: 7d       # session dies after a week of no use
+          expiration: 1d       # lifetime of a NON-remembered cookie
+          remember_me: 3M      # "remember me" box ticked -> 3 months
+
+    # Brute-force protection: lock an account briefly after repeated failures.
+    regulation:
+      max_retries: 3
+      find_time: 2m
+      ban_time: 5m
+
+    storage:
+      local:
+        path: /data/db.sqlite3
+
+    # SMTP notifier (dedicated provider = SMTP2GO) — sends TOTP-enrolment and
+    # password-reset emails so friends can self-serve in the portal (no more
+    # fishing codes out of a file / the admin CLI). Only the PASSWORD is secret;
+    # it comes from the authelia-secrets Secret via
+    # AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE (see the Deployment env). host +
+    # username + sender are non-secret. `username` must MATCH the SMTP user you
+    # create in SMTP2GO (Settings → Users). Swap address+username for a different
+    # provider — the rest is identical.
+    notifier:
+      smtp:
+        address: 'submission://mail.smtp2go.com:2525' # 2525 = SMTP2GO's recommended STARTTLS port (dodges ISP blocking of 25/587)
+        username: 'auth.pvc.tools' # <- must equal the SMTP2GO SMTP username (globally unique across all SMTP2GO)
+        sender: 'Authelia <no-reply@pvc.tools>'
+        subject: '[Authelia] {title}'

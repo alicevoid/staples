@@ -1,0 +1,90 @@
+# karakeep web (exposed) — the UI + API. Reaches meilisearch + chrome by service DNS.
+#   OIDC SSO via Authelia; karakeep's own login stays on as break-glass (don't disable it).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karakeep
+  namespace: karakeep
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO data volume
+  selector:
+    matchLabels:
+      app: karakeep
+  template:
+    metadata:
+      labels:
+        app: karakeep
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/karakeep-app/karakeep:0.33.2
+          env:
+            - name: DATA_DIR
+              value: /data   # sqlite DB + assets
+            # must match the public hostname or NextAuth callbacks redirect-loop
+            - name: NEXTAUTH_URL
+              value: https://karakeep.pvc.tools
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep-secrets
+                  key: nextauth-secret
+            - name: OAUTH_WELLKNOWN_URL
+              value: https://auth.pvc.tools/.well-known/openid-configuration
+            - name: OAUTH_CLIENT_ID
+              value: karakeep
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep-secrets
+                  key: oauth-client-secret
+            - name: OAUTH_PROVIDER_NAME
+              value: Authelia
+            # link the OIDC identity to an existing karakeep account by email
+            - name: OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING
+              value: "true"
+            - name: MEILI_ADDR
+              value: http://meilisearch:7700
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep-secrets
+                  key: meili-master-key
+            - name: BROWSER_WEB_URL
+              value: http://chrome:9222
+            - name: MAX_ASSET_SIZE_MB
+              value: "1024"   # allow up to 1GB uploads
+            # AI auto-tagging is off (no inference backend set). To enable, add
+            # OPENAI_API_KEY (or OLLAMA_BASE_URL + INFERENCE_TEXT_MODEL) via karakeep-secrets.
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: karakeep-data
+---
+# LoadBalancer: klipper binds :3000 on the host -> un-gated tailnet fallback.
+apiVersion: v1
+kind: Service
+metadata:
+  name: karakeep
+  namespace: karakeep
+spec:
+  type: LoadBalancer
+  selector:
+    app: karakeep
+  ports:
+    - port: 3000
+      targetPort: 3000

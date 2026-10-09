@@ -1,0 +1,92 @@
+# kube-prometheus-stack values (chart 91.8.1). Mirrors the live `helm get values`.
+# Admin + OAuth client secrets come from out-of-band Secrets (grafana-admin, grafana-oauth).
+#
+# NOTE: the Argo Application for this chart sets syncOptions ServerSideApply=true — the
+# prometheus-operator CRDs blow the client-side "metadata.annotations too long" limit.
+grafana:
+  # admin login from the grafana-admin Secret (not this repo)
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  # serve under the public hostname, else cross-host login = "origin not allowed"
+  env:
+    GF_SERVER_ROOT_URL: https://grafana.pvc.tools
+    GF_SERVER_DOMAIN: grafana.pvc.tools
+    # OIDC SSO via Authelia (generic_oauth). grafana-admin login stays as break-glass.
+    GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+    GF_AUTH_GENERIC_OAUTH_NAME: Authelia
+    GF_AUTH_GENERIC_OAUTH_CLIENT_ID: grafana
+    GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email groups
+    GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://auth.pvc.tools/api/oidc/authorization
+    GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://auth.pvc.tools/api/oidc/token
+    GF_AUTH_GENERIC_OAUTH_API_URL: https://auth.pvc.tools/api/oidc/userinfo
+    GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: preferred_username
+    GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: groups
+    GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: name
+    GF_AUTH_GENERIC_OAUTH_USE_PKCE: "true"
+    GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: InHeader
+    GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+    # Authelia 'admins' group -> Grafana Admin, everyone else -> Viewer.
+    GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups[*], 'admins') && 'Admin' || 'Viewer'"
+  # client secret from the grafana-oauth Secret
+  envValueFrom:
+    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+      secretKeyRef:
+        name: grafana-oauth
+        key: client-secret
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 5Gi
+  # Prometheus is auto-added as the default datasource; wire the rest.
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      access: proxy
+      url: http://loki.monitoring.svc:3100
+    # Tempo re-enabled in the Argo migration (was commented out under Nix). Links
+    # traces -> logs via the Loki datasource.
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      access: proxy
+      url: http://tempo.monitoring.svc:3100
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+
+prometheus:
+  prometheusSpec:
+    retention: 10d
+    # scrape ServiceMonitors/Rules from any chart, not just this release
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi

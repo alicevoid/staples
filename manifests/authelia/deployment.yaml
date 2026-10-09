@@ -1,0 +1,84 @@
+# Authelia — SSO login-wall + OIDC provider for *.pvc.tools.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volume
+  selector:
+    matchLabels:
+      app: authelia
+  template:
+    metadata:
+      labels:
+        app: authelia
+    spec:
+      # k8s injects AUTHELIA_* service env vars; Authelia reads every AUTHELIA_*
+      # as config and refuses to start on the collision. Turn the injection off.
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000   # let it write the PVC regardless of uid
+      containers:
+        - name: authelia
+          image: ghcr.io/authelia/authelia:4.39.28   # pin; bump deliberately
+          # second --config pulls the OIDC block (hmac/jwks/clients) from the
+          # Secret, out of this public repo. /secrets/oidc.yml MUST exist or Authelia won't start.
+          args:
+            - --config
+            - /config/configuration.yml
+            - --config
+            - /secrets/oidc.yml
+          env:
+            - name: AUTHELIA_SESSION_SECRET_FILE
+              value: /secrets/session-secret
+            - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+              value: /secrets/storage-encryption-key
+            - name: AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE
+              value: /secrets/jwt-secret
+            - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+              value: /secrets/smtp-password
+          ports:
+            - containerPort: 9091
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: authelia-config
+        - name: secrets
+          secret:
+            secretName: authelia-secrets
+        - name: data
+          persistentVolumeClaim:
+            claimName: authelia-data
+---
+# Traefik + the forwardAuth middleware reach Authelia here. :80 -> 9091 so the
+# middleware URL can omit the port.
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  type: ClusterIP
+  selector:
+    app: authelia
+  ports:
+    - port: 80
+      targetPort: 9091

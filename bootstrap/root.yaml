@@ -1,0 +1,29 @@
+# Root app-of-apps. Watches apps/ and creates one child Application per workload.
+#
+# OWNERSHIP: this same Application is declared by sutures/modules/k8s/argocd.nix, which
+# is what actually applies it on the cluster (the single Nix -> Argo handoff). This file
+# is the canonical, reviewable copy and keep-in-sync source of record; you can also
+# `kubectl apply -f bootstrap/root.yaml` to (re)bootstrap by hand. Keep the two identical.
+#
+# It auto-syncs (so adding/removing a file in apps/ propagates to the child Application
+# objects automatically) but with prune OFF — removing an app file will NOT auto-delete
+# its child Application. The CHILDREN are what gate real workload changes, and every child
+# is manual + prune:false during the migration.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

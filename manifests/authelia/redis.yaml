@@ -1,0 +1,56 @@
+# Redis — Authelia's session store (survives restarts; appendonly + PVC).
+#   ClusterIP-only and never firewalled out, so no password (would be ceremony).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: authelia
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volume
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      securityContext:
+        fsGroup: 999   # redis uid in the alpine image
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args:
+            - --appendonly
+            - "yes"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: redis-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: authelia
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379

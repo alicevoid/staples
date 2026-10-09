@@ -1,0 +1,28 @@
+# routing — all IngressRoutes + per-namespace forwardAuth Middlewares + the kube-system
+# traefik-dashboard route. Spans several namespaces (each object sets its own namespace),
+# which the default AppProject permits. The Traefik CRDs it depends on already exist on the
+# cluster (shipped by the Nix traefik-crd chart) — Argo only creates the CRs, never the CRDs.
+#
+# sync-wave 2 (LAST) so routes/Middlewares land after Authelia + the app Services they target.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: routing
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: manifests/routing
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system   # fallback only; every object declares its own namespace
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    # automated:        # <- uncomment AFTER adoption verified
+    #   prune: true
+    #   selfHeal: true

@@ -1,0 +1,28 @@
+# authelia (+ redis) — MIGRATE LAST (runbook step 6). Everything's auth depends on it, so
+# do it only when confident. forwardAuth keeps working while authelia is still Nix-owned and
+# the other apps are Argo-owned, so there is no rush. Keep each app's break-glass local login.
+#
+# sync-wave 1 (after the apps, before routing) so a clean future bootstrap brings Authelia up
+# before the routing Middlewares that forward to it.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: authelia
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: manifests/authelia
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: authelia
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # automated:        # <- uncomment AFTER adoption + data (authelia-data + redis) verified
+    #   prune: true
+    #   selfHeal: true

@@ -1,0 +1,14 @@
+# LoadBalancer: klipper binds :5230 on the host -> un-gated tailnet fallback.
+# (The gated public path is memos.pvc.tools; see manifests/routing/.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: memos
+  namespace: memos
+spec:
+  type: LoadBalancer
+  selector:
+    app: memos
+  ports:
+    - port: 5230
+      targetPort: 5230

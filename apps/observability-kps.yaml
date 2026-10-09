@@ -1,0 +1,35 @@
+# kube-prometheus-stack (Prometheus + Grafana + Alertmanager). Helm chart from upstream +
+# values from this repo (Argo multi-source). Runbook step 5.
+#
+# ServerSideApply=true is REQUIRED: the prometheus-operator CRDs are huge and blow the
+# client-side "metadata.annotations too long" limit. Back up the Grafana PVC before syncing;
+# prometheus/alertmanager data may reset.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-kps
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 91.8.1
+      helm:
+        valueFiles:
+          - $values/charts/kube-prometheus-stack/values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    # automated:        # <- uncomment AFTER adoption + Grafana data verified
+    #   prune: true
+    #   selfHeal: true

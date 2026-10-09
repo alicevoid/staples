@@ -1,0 +1,24 @@
+# karakeep — 2 PVCs (karakeep-data 50Gi, meili-data 2Gi) + chrome/meilisearch sidecars.
+# Runbook step 4. Manual + prune:false until adoption + the 50Gi data remount are verified.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: karakeep
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: manifests/karakeep
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: karakeep
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # automated:        # <- uncomment AFTER adoption + data verified
+    #   prune: true
+    #   selfHeal: true

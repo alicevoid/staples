@@ -1,0 +1,27 @@
+# karakeep-data: sqlite DB + assets. 50Gi because 1GB uploads are allowed (MAX_ASSET_SIZE_MB).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: karakeep-data
+  namespace: karakeep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi
+---
+# meili-data: Meilisearch's search index (rebuildable from karakeep if lost).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meili-data
+  namespace: karakeep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,49 @@
+# Headless Chrome (internal, stateless) — crawls saved links.
+#   flags mirror upstream compose; the image already enables debug on :9222.
+#   chrome is the OOM risk here, hence the 1Gi cap.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chrome
+  namespace: karakeep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chrome
+  template:
+    metadata:
+      labels:
+        app: chrome
+    spec:
+      containers:
+        - name: chrome
+          image: ghcr.io/karakeep-app/karakeep-chrome:release   # upstream only ships a floating `release` tag
+          args:
+            - --disable-gpu
+            - --disable-dev-shm-usage
+            - --hide-scrollbars
+            - --disable-blink-features=AutomationControlled
+            - --window-size=1440,900
+          ports:
+            - containerPort: 9222
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chrome
+  namespace: karakeep
+spec:
+  type: ClusterIP
+  selector:
+    app: chrome
+  ports:
+    - port: 9222
+      targetPort: 9222

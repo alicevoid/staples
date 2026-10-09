@@ -1,0 +1,60 @@
+# Meilisearch (internal) — karakeep's search index.
+#   Pinned to the version karakeep's upstream compose uses (v1.41.0): the on-disk
+#   index format is version-sensitive, so bump it in lockstep with karakeep.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meilisearch
+  namespace: karakeep
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volume
+  selector:
+    matchLabels:
+      app: meilisearch
+  template:
+    metadata:
+      labels:
+        app: meilisearch
+    spec:
+      containers:
+        - name: meilisearch
+          image: getmeili/meilisearch:v1.41.0
+          env:
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep-secrets
+                  key: meili-master-key
+            - name: MEILI_NO_ANALYTICS
+              value: "true"
+          ports:
+            - containerPort: 7700
+          volumeMounts:
+            - name: meili
+              mountPath: /meili_data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: meili
+          persistentVolumeClaim:
+            claimName: meili-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meilisearch
+  namespace: karakeep
+spec:
+  type: ClusterIP
+  selector:
+    app: meilisearch
+  ports:
+    - port: 7700
+      targetPort: 7700

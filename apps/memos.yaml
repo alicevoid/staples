@@ -1,0 +1,29 @@
+# memos — 1 PVC (memos-data, 2Gi). Migration template app (runbook step 3).
+#
+# During migration this is MANUAL sync + prune:false: Argo adopts the live objects and
+# nothing changes on the cluster without an explicit `argocd app sync memos`. Once you've
+# confirmed `argocd app diff memos` is ~empty, removed memos.nix + rebuilt, and verified the
+# pod remounts the SAME memos-data PV, turn on continuous reconcile by uncommenting the
+# `automated:` block below and syncing.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: memos
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: manifests/memos
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: memos
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # automated:        # <- uncomment AFTER adoption + data verified
+    #   prune: true
+    #   selfHeal: true

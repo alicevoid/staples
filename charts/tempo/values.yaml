@@ -1,0 +1,24 @@
+# Tempo values (chart 1.24.4). Single-binary Tempo with OTLP receivers.
+# Instrumented apps send spans to tempo.monitoring.svc:4317 (gRPC) / :4318 (HTTP).
+# Mirrors the live `helm get values tempo` (tempo is already Running on-cluster;
+# this re-homes it under Argo, matching reality).
+tempo:
+  retention: 168h   # 7d block retention
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+persistence:
+  enabled: true
+  storageClassName: local-path
+  size: 10Gi

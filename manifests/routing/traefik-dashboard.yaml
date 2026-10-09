@@ -1,0 +1,42 @@
+# traefik.pvc.tools (Authelia-gated) -> api@internal (the Traefik dashboard, at /dashboard/).
+#   Lives in kube-system because that's where the Traefik controller (api@internal) runs.
+#   NOTE: this is the one routing object in kube-system — kept here with the rest of
+#   routing so a future Gateway-API swap touches only manifests/routing/.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authelia
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: http://authelia.authelia.svc.cluster.local/api/authz/forward-auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - Remote-User
+      - Remote-Groups
+      - Remote-Email
+      - Remote-Name
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`traefik.pvc.tools`)
+      middlewares:
+        - name: authelia
+          namespace: kube-system
+      services:
+        - kind: TraefikService
+          name: api@internal
+  tls:
+    certResolver: le
+    domains:
+      - main: pvc.tools
+        sans:
+          - '*.pvc.tools'
