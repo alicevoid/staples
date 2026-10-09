@@ -18,6 +18,10 @@ spec:
       chart: kube-prometheus-stack
       targetRevision: 91.8.1
       helm:
+        # Match the Nix Helm release name so Argo ADOPTS the existing stack
+        # (objects stay `kube-prometheus-stack-*`) instead of standing up a
+        # parallel `observability-kps-*` copy.
+        releaseName: kube-prometheus-stack
         valueFiles:
           - $values/monitoring/kube-prometheus-stack/values.yaml
     - repoURL: https://github.com/alicevoid/staples
