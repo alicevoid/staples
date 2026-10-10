@@ -40,6 +40,9 @@ spec:
               readOnly: true
             - name: vault
               mountPath: /livesync-bridge/data   # config baseDir "data/mindvirus" -> here
+            - name: deno
+              mountPath: /deno-dir   # writable Deno cache (+ scan state); we run as 1000, not
+                                     # the image's default user, so /deno-dir must be writable
           resources:
             requests:
               cpu: 50m
@@ -55,3 +58,5 @@ spec:
           hostPath:
             path: /srv/vaults
             type: Directory
+        - name: deno
+          emptyDir: {}   # ephemeral; bridge re-scans on restart (fine for a small vault)
