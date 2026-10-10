@@ -1,6 +1,6 @@
-# CouchDB. Single-node, RWO volume -> Recreate strategy. Admin creds from the out-of-band
-# couchdb-secrets Secret (username/password). Config merged via a subPath file mount so the
-# image's docker.ini (admin setup) survives.
+# CouchDB for Obsidian LiveSync (placeholder + mindvirus DBs). Single-node, RWO -> Recreate.
+# Admin creds from the out-of-band couchdb-secrets Secret. (LiveSync config + the run-as-couchdb
+# quirk are written up in QUIRKS.)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,13 +19,11 @@ spec:
         app: couchdb
     spec:
       securityContext:
-        # Run AS the couchdb user. The image entrypoint, when it runs as root, does a
-        # `find /opt/couchdb ! -user couchdb -exec chown ...` that fails on our read-only
-        # ConfigMap-mounted local.ini (can't chown a RO bind-mount) and set -e kills it.
-        # Running as 5984 skips that root-only block; couchdb still reads the 644 config fine.
+        # run as couchdb (5984), not root, to skip the image's root-only chown-everything step
+        # (it dies on our read-only config mount — see QUIRKS)
         runAsUser: 5984
         runAsGroup: 5984
-        fsGroup: 5984   # group-own the PVC so couchdb (5984) can write /opt/couchdb/data
+        fsGroup: 5984   # lets couchdb (5984) write the PVC
       containers:
         - name: couchdb
           image: couchdb:3.4   # pin, not :latest
@@ -47,7 +45,7 @@ spec:
               mountPath: /opt/couchdb/data
             - name: config
               mountPath: /opt/couchdb/etc/local.d/10-livesync.ini
-              subPath: 10-livesync.ini
+              subPath: 10-livesync.ini   # single-file mount; don't clobber the entrypoint's docker.ini
           readinessProbe:
             tcpSocket:
               port: 5984

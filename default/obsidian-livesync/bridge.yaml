@@ -1,13 +1,8 @@
-# livesync-bridge: materializes the (non-E2EE) mindvirus CouchDB vault as plain .md files on
-#   pharika at /srv/vaults/mindvirus, bidirectionally. This is what lets Claude-on-pharika read
-#   AND write the AI vault (write a file -> bridge -> CouchDB -> your Obsidian, and vice-versa).
-#
-#   - Runs as 1000:100 (alice) so files are yours and a tmux-Claude (also you) can r/w them.
-#   - Reaches CouchDB via the in-cluster Service (no hairpin).
-#   - Config (holds the CouchDB password) is the out-of-band Secret `livesync-bridge-config`,
-#     NOT in git. Create it before this pod starts (see README / handoff).
-#   - Community image (no official one upstream); pin by digest / self-build later if desired.
-#   - placeholder is NOT bridged (it's E2EE + device-only by design).
+# livesync-bridge: materializes the (plaintext) mindvirus CouchDB DB as .md files at
+# /srv/vaults/mindvirus on pharika, bidirectionally, so a host/tmux Claude can read+write the AI
+# vault. Runs as alice (1000:100) so the files are hers; reaches CouchDB in-cluster. Config is the
+# out-of-band Secret `livesync-bridge-config` (holds the password, not in git). placeholder is
+# never bridged (E2EE, device-only). Image/path quirks are in QUIRKS.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,9 +28,8 @@ spec:
         kubernetes.io/hostname: pharika   # hostPath lives on pharika
       containers:
         - name: bridge
-          # Current CI build of upstream vrtmrz/livesync-bridge source (upstream ships no image).
-          # The old canardconfit image was ~2yr stale and its _changes watcher broke on CouchDB 3.4.
-          # TODO: pin to @sha256:<digest> after the first pull (kubectl get pod -o jsonpath imageID).
+          # upstream publishes no image; this is a current CI build of the source.
+          # TODO: pin to @sha256:<digest> (kubectl get pod -o jsonpath imageID).
           image: ghcr.io/caiobcosta/livesync-bridge:latest
           volumeMounts:
             - name: config
@@ -44,8 +38,7 @@ spec:
             - name: vault
               mountPath: /app/data         # storage baseDir "data/mindvirus" -> /app/data/mindvirus
             - name: deno
-              mountPath: /deno-dir   # writable Deno cache (+ scan state); we run as 1000, not
-                                     # the image's default user, so /deno-dir must be writable
+              mountPath: /deno-dir   # writable Deno cache (we run as 1000, not the image user)
           resources:
             requests:
               cpu: 50m

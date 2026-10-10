@@ -1,9 +1,7 @@
-# CouchDB config for Obsidian LiveSync. Mounted as a single file via subPath into
-# /opt/couchdb/etc/local.d/ so it does NOT clobber the entrypoint's docker.ini (which holds the
-# admin creds from COUCHDB_USER/PASSWORD). The canonical LiveSync settings:
-#   single_node   -> auto-creates _users/_replicator/_global_changes on first boot
-#   require_valid_user (+ _except_for_up) -> everything needs auth, except /_up for health checks
-#   CORS origins  -> Obsidian's odd origins (desktop Electron / iOS capacitor / Android localhost)
+# The canonical CouchDB settings Obsidian LiveSync needs: single_node (auto-creates the system
+# DBs), require_valid_user (+ _except_for_up so /_up health checks pass), and CORS for Obsidian's
+# origins (desktop/iOS/Android). Mounted via subPath so it doesn't clobber the entrypoint's
+# docker.ini. Rationale in QUIRKS.
 apiVersion: v1
 kind: ConfigMap
 metadata:
