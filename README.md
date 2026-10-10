@@ -89,26 +89,15 @@ kubectl config set-context --current --namespace=argocd
 
 - `argocd app diff <app> --core` before a manual sync shows what would change.
 - Health-check an app via its LoadBalancer on localhost, e.g. `curl -s localhost:5230` (memos),
-  `localhost:3000` (karakeep). Do not curl `*.pvc.tools` from pharika itself: the host resolves
-  those to the WAN IP and NAT-hairpins, so it always returns 000 from the node. Test from a laptop.
-- The Argo UI is reachable over an ssh tunnel (see sutures argocd.nix), or `--core` from the CLI.
+  `localhost:3000` (karakeep), or curl `*.pvc.tools` directly. pharika resolves those to its own
+  tailnet IP through Tailscale split DNS (see sutures `hosts/pharika/configuration.nix`), so there
+  is no hairpin from the node.
+- The Argo UI is at `argocd.pvc.tools` (Authelia-gated), or use `--core` from the CLI.
 - Helm apps (currently just kube-prometheus-stack) MUST pin `helm.releaseName` to the live release
   name. Argo defaults the release name to the Application name; if it differs, Argo installs a
   parallel stack instead of adopting.
 
 ## Known follow-ups
 
-- Dormant Nix leftovers: the old k3s addon manifests still sit in
-  `/var/lib/rancher/k3s/server/manifests/` on pharika (NixOS does not delete them when a module is
-  removed). They are inert while the box stays up, but a k3s restart re-applies them and can briefly
-  fight Argo. Clearing them safely (so no PVC is pruned) means, per app: strip the
-  `objectset.rio.cattle.io/*` annotations and `objectset.rio.cattle.io/hash` label from the live
-  objects, then `sudo rm` the manifest file. The observability HelmChart CRs need their
-  helm-controller finalizer removed before deletion or the controller runs `helm uninstall`. Best
-  done as a tested script, not by hand.
-- `default/homer`: leftover debug deployment (NodePort 30441), not in Nix. `kubectl -n default
-  delete deploy/homer svc/homer` and `sudo rm -rf /srv/homer`.
-- `argocd.pvc.tools` route: done (`argocd/route.yaml`, Authelia-gated, admins only) — retires the
-  ssh tunnel. To reach it off-tailnet, add a Porkbun A record `argocd.pvc.tools -> WAN IP`.
 - Cilium + Gateway API: will replace flannel/klipper/Traefik-IngressRoute. Keep routing isolated
   so the swap is contained.
