@@ -1,23 +1,22 @@
-# tempo: traces (single binary), OTLP on :4317/:4318. Plain YAML in monitoring/tempo.
+# argocd.pvc.tools route (IngressRoute + authelia Middleware). Manifests in argocd/.
+#   sync-wave 1: after the workloads/routes in wave 0, though order is not critical here.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: observability-tempo
+  name: argocd-route
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: https://github.com/alicevoid/staples
     targetRevision: main
-    path: monitoring/tempo
+    path: argocd
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

@@ -23,22 +23,28 @@ apps/                 one Argo Application per workload
 auth/
   authelia/           namespace, pvcs, configmap, deployment, service, redis
 monitoring/
-  kube-prometheus-stack/values.yaml   the one Helm app (operator + CRDs + rules)
-  loki/  alloy/  tempo/                plain YAML, rendered once from their charts
+  kube-prometheus-stack/  loki/  alloy/   Helm apps (upstream chart + values.yaml here)
 default/
-  memos/  karakeep/   user-facing apps
+  memos/  karakeep/   user-facing apps (hand-written plain YAML)
   routing/            all IngressRoutes + per-namespace authelia forwardAuth Middlewares
+argocd/
+  route.yaml          argocd.pvc.tools IngressRoute + Authelia Middleware
 ```
 
 `default/` is the catch-all. Routing lives there on purpose: Cilium + Gateway API will eventually
 rewrite these Traefik IngressRoutes as HTTPRoutes under a `gateway/` directory, so there's no
-point giving them their own top-level category yet. `argocd/` is reserved for Argo's own extras
-(a future `argocd.pvc.tools` route, AppProjects); empty for now since the install itself is Nix.
+point giving them their own top-level category yet. `argocd/` holds Argo's own extras — currently
+the `argocd.pvc.tools` route (IngressRoute + Authelia Middleware, admins only); the Argo install
+itself stays in Nix.
 
-Only kube-prometheus-stack uses Helm (via Argo multi-source: upstream chart + `values.yaml` here
-through `$values`). loki/alloy/tempo were rendered once with `helm template` and committed as
-plain manifests. Re-render on a version bump rather than hand-editing; the command is in each
-file's header.
+The observability charts are Argo Helm apps (multi-source: upstream chart + a `values.yaml` here
+through `$values`): kube-prometheus-stack, loki, alloy. The rule: consume a third-party chart via
+Helm and tune it through values — never hand-edit rendered output; write first-party apps (memos,
+karakeep, authelia) as plain YAML. kube-prometheus-stack additionally sets `ServerSideApply=true`
+(its operator CRDs exceed the client-side annotation limit); the others ship no CRDs, so they
+don't need it. Each Helm app pins `helm.releaseName` to the live release so Argo adopts the
+running workload instead of duplicating it. Bump a chart by changing `targetRevision` in its
+`apps/` Application.
 
 ## Secrets
 
@@ -67,11 +73,13 @@ Application pointing at it, then push. Root picks it up within a minute.
 ## Operating notes
 
 The argocd CLI runs on pharika. Use `--core` (talks to the k8s API directly, no server login).
-It needs the kube context namespace set to `argocd`, one-time:
+It needs the kube context namespace set to `argocd`, which sutures' home-manager sets up
+automatically on pharika (a private `~/.kube/config` with `KUBECONFIG` pointed at it), so a fresh
+shell just works. On any other machine, replicate it once:
 
 ```
 install -Dm600 /etc/rancher/k3s/k3s.yaml ~/.kube/config
-export KUBECONFIG=$HOME/.kube/config          # add to your shell profile to persist
+export KUBECONFIG=$HOME/.kube/config
 kubectl config set-context --current --namespace=argocd
 ```
 
@@ -96,6 +104,7 @@ kubectl config set-context --current --namespace=argocd
   done as a tested script, not by hand.
 - `default/homer`: leftover debug deployment (NodePort 30441), not in Nix. `kubectl -n default
   delete deploy/homer svc/homer` and `sudo rm -rf /srv/homer`.
-- An `argocd.pvc.tools` IngressRoute under `argocd/` to retire the ssh tunnel.
+- `argocd.pvc.tools` route: done (`argocd/route.yaml`, Authelia-gated, admins only) — retires the
+  ssh tunnel. To reach it off-tailnet, add a Porkbun A record `argocd.pvc.tools -> WAN IP`.
 - Cilium + Gateway API: will replace flannel/klipper/Traefik-IngressRoute. Keep routing isolated
   so the swap is contained.

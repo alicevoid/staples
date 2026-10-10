@@ -1,4 +1,6 @@
-# loki: log storage (SingleBinary). Plain YAML in monitoring/loki (rendered from the chart).
+# loki: log storage (SingleBinary). Argo Helm app — upstream chart + values from this repo.
+#   releaseName MUST stay "loki" so Argo ADOPTS the live StatefulSet (app.kubernetes.io/instance
+#   =loki) instead of standing up a duplicate stack. No CRDs, so no ServerSideApply needed.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,10 +10,17 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  source:
-    repoURL: https://github.com/alicevoid/staples
-    targetRevision: main
-    path: monitoring/loki
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: loki
+      targetRevision: 7.3.0
+      helm:
+        releaseName: loki
+        valueFiles:
+          - $values/monitoring/loki/values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

@@ -36,22 +36,14 @@ grafana:
     enabled: true
     storageClassName: local-path
     size: 5Gi
-  # Prometheus is the default datasource; wire the rest.
+  # Prometheus is the default datasource; Loki added here. (Tempo dropped — nothing emits
+  # traces yet; re-add the chart + this datasource when an app is actually instrumented.)
   additionalDataSources:
     - name: Loki
       type: loki
       uid: loki
       access: proxy
       url: http://loki.monitoring.svc:3100
-    # Tempo re-enabled in the Argo migration (was commented out under Nix).
-    - name: Tempo
-      type: tempo
-      uid: tempo
-      access: proxy
-      url: http://tempo.monitoring.svc:3100
-      jsonData:
-        tracesToLogsV2:
-          datasourceUid: loki
 
 prometheus:
   prometheusSpec:

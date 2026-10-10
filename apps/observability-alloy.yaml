@@ -1,4 +1,5 @@
-# alloy: log collection DaemonSet -> loki. Plain YAML in monitoring/alloy.
+# alloy: log collector DaemonSet. Argo Helm app — upstream chart + values from this repo.
+#   releaseName MUST stay "alloy" so Argo adopts the live DaemonSet instead of duplicating it.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,10 +9,17 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  source:
-    repoURL: https://github.com/alicevoid/staples
-    targetRevision: main
-    path: monitoring/alloy
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: alloy
+      targetRevision: 1.13.0
+      helm:
+        releaseName: alloy
+        valueFiles:
+          - $values/monitoring/alloy/values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
