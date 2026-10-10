@@ -33,7 +33,10 @@ spec:
         kubernetes.io/hostname: pharika   # hostPath lives on pharika
       containers:
         - name: bridge
-          image: canardconfit/livesync-bridge:latest
+          # Current CI build of upstream vrtmrz/livesync-bridge source (upstream ships no image).
+          # The old canardconfit image was ~2yr stale and its _changes watcher broke on CouchDB 3.4.
+          # TODO: pin to @sha256:<digest> after the first pull (kubectl get pod -o jsonpath imageID).
+          image: ghcr.io/caiobcosta/livesync-bridge:latest
           volumeMounts:
             - name: config
               mountPath: /livesync-bridge/dat
