@@ -39,10 +39,10 @@ spec:
           image: ghcr.io/caiobcosta/livesync-bridge:latest
           volumeMounts:
             - name: config
-              mountPath: /livesync-bridge/dat
+              mountPath: /app/dat          # current image runs from /app; reads ./dat/config.json
               readOnly: true
             - name: vault
-              mountPath: /livesync-bridge/data   # config baseDir "data/mindvirus" -> here
+              mountPath: /app/data         # storage baseDir "data/mindvirus" -> /app/data/mindvirus
             - name: deno
               mountPath: /deno-dir   # writable Deno cache (+ scan state); we run as 1000, not
                                      # the image's default user, so /deno-dir must be writable
