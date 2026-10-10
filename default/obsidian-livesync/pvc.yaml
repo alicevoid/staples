@@ -1,0 +1,13 @@
+# CouchDB data (both databases live here). local-path for now; NAS candidate later.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: couchdb-data
+  namespace: obsidian
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi

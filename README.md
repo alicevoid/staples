@@ -26,6 +26,7 @@ monitoring/
   kube-prometheus-stack/  loki/  alloy/   Helm apps (upstream chart + values.yaml here)
 default/
   memos/  karakeep/   user-facing apps (hand-written plain YAML)
+  obsidian-livesync/  CouchDB for Obsidian LiveSync (placeholder + mindvirus vaults)
   routing/            all IngressRoutes + per-namespace authelia forwardAuth Middlewares
 argocd/
   route.yaml          argocd.pvc.tools IngressRoute + Authelia Middleware
@@ -58,6 +59,7 @@ name only. Argo never touches the Secret objects, so a sync or prune won't delet
 | `grafana-admin` | monitoring | kube-prometheus-stack Grafana admin (admin-user, admin-password) |
 | `grafana-oauth` | monitoring | Grafana OIDC client-secret |
 | `traefik-porkbun` | kube-system | Traefik DNS-01 ACME (api-key, secret-api-key); lives with the Traefik controller in Nix |
+| `couchdb-secrets` | obsidian | CouchDB admin (username, password) for Obsidian LiveSync; also used by livesync-bridge |
 
 Encrypting secrets into git (sops-nix / agenix) is a later level-up.
 

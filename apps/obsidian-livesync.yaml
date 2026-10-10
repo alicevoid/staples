@@ -1,0 +1,24 @@
+# obsidian-livesync: CouchDB for Obsidian LiveSync (placeholder + mindvirus vaults).
+#   Plain-YAML first-party app. Manifests in default/obsidian-livesync.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: obsidian-livesync
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: default/obsidian-livesync
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: obsidian
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,36 @@
+# CouchDB config for Obsidian LiveSync. Mounted as a single file via subPath into
+# /opt/couchdb/etc/local.d/ so it does NOT clobber the entrypoint's docker.ini (which holds the
+# admin creds from COUCHDB_USER/PASSWORD). The canonical LiveSync settings:
+#   single_node   -> auto-creates _users/_replicator/_global_changes on first boot
+#   require_valid_user (+ _except_for_up) -> everything needs auth, except /_up for health checks
+#   CORS origins  -> Obsidian's odd origins (desktop Electron / iOS capacitor / Android localhost)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: couchdb-config
+  namespace: obsidian
+data:
+  10-livesync.ini: |
+    [couchdb]
+    single_node = true
+    max_document_size = 50000000
+
+    [chttpd]
+    require_valid_user = true
+    require_valid_user_except_for_up = true
+    max_http_request_size = 4294967296
+    bind_address = 0.0.0.0
+
+    [chttpd_auth]
+    require_valid_user = true
+
+    [httpd]
+    WWW-Authenticate = Basic realm="couchdb"
+    enable_cors = true
+
+    [cors]
+    credentials = true
+    origins = app://obsidian.md,capacitor://localhost,http://localhost
+    methods = GET, PUT, POST, HEAD, DELETE
+    headers = accept, authorization, content-type, origin, referer
+    max_age = 3600

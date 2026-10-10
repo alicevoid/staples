@@ -1,0 +1,14 @@
+# ClusterIP: reached by Traefik (obsidian.pvc.tools) and, later, the in-cluster livesync-bridge
+# at http://couchdb.obsidian.svc:5984. No host exposure of its own.
+apiVersion: v1
+kind: Service
+metadata:
+  name: couchdb
+  namespace: obsidian
+spec:
+  type: ClusterIP
+  selector:
+    app: couchdb
+  ports:
+    - port: 5984
+      targetPort: 5984

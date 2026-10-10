@@ -1,0 +1,68 @@
+# CouchDB. Single-node, RWO volume -> Recreate strategy. Admin creds from the out-of-band
+# couchdb-secrets Secret (username/password). Config merged via a subPath file mount so the
+# image's docker.ini (admin setup) survives.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: couchdb
+  namespace: obsidian
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: couchdb
+  template:
+    metadata:
+      labels:
+        app: couchdb
+    spec:
+      securityContext:
+        fsGroup: 5984   # couchdb uid/gid in the official image; lets it write the PVC
+      containers:
+        - name: couchdb
+          image: couchdb:3.4   # pin, not :latest
+          env:
+            - name: COUCHDB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb-secrets
+                  key: username
+            - name: COUCHDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb-secrets
+                  key: password
+          ports:
+            - containerPort: 5984
+          volumeMounts:
+            - name: data
+              mountPath: /opt/couchdb/data
+            - name: config
+              mountPath: /opt/couchdb/etc/local.d/10-livesync.ini
+              subPath: 10-livesync.ini
+          readinessProbe:
+            tcpSocket:
+              port: 5984
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5984
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: couchdb-data
+        - name: config
+          configMap:
+            name: couchdb-config
