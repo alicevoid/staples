@@ -19,7 +19,13 @@ spec:
         app: couchdb
     spec:
       securityContext:
-        fsGroup: 5984   # couchdb uid/gid in the official image; lets it write the PVC
+        # Run AS the couchdb user. The image entrypoint, when it runs as root, does a
+        # `find /opt/couchdb ! -user couchdb -exec chown ...` that fails on our read-only
+        # ConfigMap-mounted local.ini (can't chown a RO bind-mount) and set -e kills it.
+        # Running as 5984 skips that root-only block; couchdb still reads the 644 config fine.
+        runAsUser: 5984
+        runAsGroup: 5984
+        fsGroup: 5984   # group-own the PVC so couchdb (5984) can write /opt/couchdb/data
       containers:
         - name: couchdb
           image: couchdb:3.4   # pin, not :latest
