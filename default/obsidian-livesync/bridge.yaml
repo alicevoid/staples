@@ -1,0 +1,57 @@
+# livesync-bridge: materializes the (non-E2EE) mindvirus CouchDB vault as plain .md files on
+#   pharika at /srv/vaults/mindvirus, bidirectionally. This is what lets Claude-on-pharika read
+#   AND write the AI vault (write a file -> bridge -> CouchDB -> your Obsidian, and vice-versa).
+#
+#   - Runs as 1000:100 (alice) so files are yours and a tmux-Claude (also you) can r/w them.
+#   - Reaches CouchDB via the in-cluster Service (no hairpin).
+#   - Config (holds the CouchDB password) is the out-of-band Secret `livesync-bridge-config`,
+#     NOT in git. Create it before this pod starts (see README / handoff).
+#   - Community image (no official one upstream); pin by digest / self-build later if desired.
+#   - placeholder is NOT bridged (it's E2EE + device-only by design).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livesync-bridge
+  namespace: obsidian
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: livesync-bridge
+  template:
+    metadata:
+      labels:
+        app: livesync-bridge
+    spec:
+      securityContext:
+        runAsUser: 1000    # alice
+        runAsGroup: 100    # users
+        fsGroup: 100
+      nodeSelector:
+        kubernetes.io/hostname: pharika   # hostPath lives on pharika
+      containers:
+        - name: bridge
+          image: canardconfit/livesync-bridge:latest
+          volumeMounts:
+            - name: config
+              mountPath: /livesync-bridge/dat
+              readOnly: true
+            - name: vault
+              mountPath: /livesync-bridge/data   # config baseDir "data/mindvirus" -> here
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: config
+          secret:
+            secretName: livesync-bridge-config   # key: config.json
+        - name: vault
+          hostPath:
+            path: /srv/vaults
+            type: Directory

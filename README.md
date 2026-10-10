@@ -60,6 +60,7 @@ name only. Argo never touches the Secret objects, so a sync or prune won't delet
 | `grafana-oauth` | monitoring | Grafana OIDC client-secret |
 | `traefik-porkbun` | kube-system | Traefik DNS-01 ACME (api-key, secret-api-key); lives with the Traefik controller in Nix |
 | `couchdb-secrets` | obsidian | CouchDB admin (username, password) for Obsidian LiveSync; also used by livesync-bridge |
+| `livesync-bridge-config` | obsidian | livesync-bridge `config.json` (couchdb peer creds + mindvirus<->/srv/vaults storage peer) |
 
 Encrypting secrets into git (sops-nix / agenix) is a later level-up.
 
