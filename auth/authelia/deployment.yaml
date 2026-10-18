@@ -25,7 +25,7 @@ spec:
         - name: authelia
           image: ghcr.io/authelia/authelia:4.39.28   # pin; bump deliberately
           # second --config pulls the OIDC block (hmac/jwks/clients) from the Secret, out of
-          # this public repo. /secrets/oidc.yml MUST exist or Authelia won't start.
+          # this public repo. /secrets/oidc.yml must exist or Authelia won't start.
           args:
             - --config
             - /config/configuration.yml
@@ -68,8 +68,8 @@ spec:
           persistentVolumeClaim:
             claimName: authelia-data
 ---
-# Traefik + the forwardAuth middleware reach Authelia here. :80 -> 9091 so the middleware
-# URL can omit the port.
+# The Gateway's ExternalAuth filter and the auth.pvc.tools route reach Authelia here.
+# :80 -> 9091, so callers can omit the port.
 apiVersion: v1
 kind: Service
 metadata:

@@ -1,6 +1,6 @@
-# loki: log storage, SingleBinary (one pod — right for a single node).
+# loki: log storage, SingleBinary (one pod, right for a single node).
 # Consumed by apps/observability-loki.yaml as an Argo Helm source (grafana/loki chart 7.3.0)
-# plus these values via $values. Tune intent HERE; Argo re-renders. No hand-edited manifests.
+# plus these values via $values. Change settings here; Argo re-renders the chart.
 deploymentMode: SingleBinary
 loki:
   auth_enabled: false

@@ -20,7 +20,7 @@ spec:
     spec:
       securityContext:
         # run as couchdb (5984), not root, to skip the image's root-only chown-everything step
-        # (it dies on our read-only config mount — see QUIRKS)
+        # (it fails on the read-only config mount; see QUIRKS)
         runAsUser: 5984
         runAsGroup: 5984
         fsGroup: 5984   # lets couchdb (5984) write the PVC

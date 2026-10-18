@@ -45,14 +45,14 @@ Gated routes use the Gateway API `ExternalAuth` filter against Authelia's ext-au
 needs the experimental Gateway API CRDs, which sutures installs. Routes in other namespaces may call
 Authelia because of the ReferenceGrant in `authelia`.
 
-The observability charts are Argo Helm apps (multi-source: upstream chart + a `values.yaml` here
-through `$values`): kube-prometheus-stack, loki, alloy. The rule: consume a third-party chart via
-Helm and tune it through values — never hand-edit rendered output; write first-party apps (memos,
-karakeep, authelia) as plain YAML. kube-prometheus-stack additionally sets `ServerSideApply=true`
-(its operator CRDs exceed the client-side annotation limit); the others ship no CRDs, so they
-don't need it. Each Helm app pins `helm.releaseName` to the live release so Argo adopts the
-running workload instead of duplicating it. Bump a chart by changing `targetRevision` in its
-`apps/` Application.
+Third-party software is consumed as Argo Helm apps (multi-source: upstream chart + a `values.yaml`
+here through `$values`): kube-prometheus-stack, loki, alloy, cert-manager and the Porkbun webhook.
+The rule: use a third-party chart through Helm and tune it through values, never by hand-editing
+rendered output; write first-party apps (memos, karakeep, authelia, obsidian-livesync) as plain
+YAML. Charts that ship large CRDs (kube-prometheus-stack, cert-manager) set `ServerSideApply=true`,
+because their CRDs exceed the client-side annotation limit. Each Helm app pins `helm.releaseName`
+so Argo adopts the running release instead of duplicating it. Bump a chart by changing
+`targetRevision` in its `apps/` Application.
 
 ## Secrets
 
@@ -101,7 +101,7 @@ kubectl config set-context --current --namespace=argocd
 - Debug routing through status: `kubectl describe gateway pvc-tools -n gateway` and
   `kubectl describe httproute <app> -n <ns>` (look for `Accepted` and `ResolvedRefs`).
 - The Argo UI is at `argocd.pvc.tools` (Authelia-gated), or use `--core` from the CLI.
-- Helm apps MUST pin `helm.releaseName` to the live release
+- Helm apps must pin `helm.releaseName` to the live release
   name. Argo defaults the release name to the Application name; if it differs, Argo installs a
   parallel stack instead of adopting.
 

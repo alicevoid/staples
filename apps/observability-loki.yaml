@@ -1,6 +1,6 @@
-# loki: log storage (SingleBinary). Argo Helm app — upstream chart + values from this repo.
-#   releaseName MUST stay "loki" so Argo ADOPTS the live StatefulSet (app.kubernetes.io/instance
-#   =loki) instead of standing up a duplicate stack. No CRDs, so no ServerSideApply needed.
+# loki: log storage (SingleBinary). Argo Helm app (upstream chart + values from this repo).
+#   releaseName must stay "loki" so Argo adopts the running StatefulSet instead of creating a
+#   second one. No CRDs, so no ServerSideApply.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

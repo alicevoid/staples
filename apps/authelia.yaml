@@ -1,6 +1,5 @@
-# authelia: SSO login-wall + OIDC provider (+ redis session store). Manifests in auth/authelia.
-#   Everything else's forwardAuth depends on this, so sync-wave 1 (after the apps it gates,
-#   before routing) keeps it up ahead of the Middlewares that point at it.
+# authelia: SSO login wall + OIDC provider (+ redis session store). Manifests in auth/authelia.
+#   Sync wave 1: after the apps it gates, before the gateway routes that call it.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
