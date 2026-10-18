@@ -7,7 +7,7 @@ spec:
   secretName: pvc-tools-wildcard
   issuerRef:
     kind: ClusterIssuer
-    name: letsencrypt-staging
+    name: letsencrypt-prod
   dnsNames:
     - pvc.tools
     - "*.pvc.tools"
