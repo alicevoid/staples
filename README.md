@@ -31,6 +31,11 @@ default/
   routing/            all IngressRoutes + per-namespace authelia forwardAuth Middlewares
 argocd/
   route.yaml          argocd.pvc.tools IngressRoute + Authelia Middleware
+security/
+  cert-manager/  porkbun-webhook/   Helm apps (DNS-01 via Porkbun for the wildcard cert)
+  issuers/            Let's Encrypt staging + prod ClusterIssuers
+gateway/
+  namespace.yaml  certificate.yaml   pvc.tools + *.pvc.tools cert, consumed by the Gateway
 ```
 
 `default/` is the catch-all. Routing lives there on purpose: Cilium + Gateway API will eventually
@@ -50,7 +55,7 @@ running workload instead of duplicating it. Bump a chart by changing `targetRevi
 
 ## Secrets
 
-Public-safe repo: zero secrets in git. Five Secrets are hand-created in-cluster and referenced by
+Public-safe repo: zero secrets in git. These Secrets are hand-created in-cluster and referenced by
 name only. Argo never touches the Secret objects, so a sync or prune won't delete them.
 
 | Secret | namespace | used by |
@@ -61,6 +66,8 @@ name only. Argo never touches the Secret objects, so a sync or prune won't delet
 | `grafana-oauth` | monitoring | Grafana OIDC client-secret |
 | `traefik-porkbun` | kube-system | Traefik DNS-01 ACME (api-key, secret-api-key); lives with the Traefik controller in Nix |
 | `couchdb-secrets` | obsidian | CouchDB admin (username, password) for Obsidian LiveSync; also used by livesync-bridge |
+| `argocd-oidc` | argocd | ArgoCD OIDC client-secret (needs label `app.kubernetes.io/part-of=argocd`) |
+| `porkbun-api-credentials` | cert-manager | Porkbun DNS-01 webhook (api-key, secret-key) |
 | `livesync-bridge-config` | obsidian | livesync-bridge `config.json` (couchdb peer creds + mindvirus<->/srv/vaults storage peer) |
 
 Encrypting secrets into git (sops-nix / agenix) is a later level-up.
@@ -93,7 +100,7 @@ kubectl config set-context --current --namespace=argocd
   tailnet IP through Tailscale split DNS (see sutures `hosts/pharika/configuration.nix`), so there
   is no hairpin from the node.
 - The Argo UI is at `argocd.pvc.tools` (Authelia-gated), or use `--core` from the CLI.
-- Helm apps (currently just kube-prometheus-stack) MUST pin `helm.releaseName` to the live release
+- Helm apps MUST pin `helm.releaseName` to the live release
   name. Argo defaults the release name to the Application name; if it differs, Argo installs a
   parallel stack instead of adopting.
 

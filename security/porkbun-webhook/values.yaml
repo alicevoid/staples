@@ -1,0 +1,10 @@
+groupName: acme.pvc.tools
+
+image:
+  digest: sha256:c0c3231e459b08d5fa87e66830594295a55214ffa63303ff40536e0894b4ac36
+
+rbac:
+  secretAccess:
+    scope: Namespaced
+    secretNames:
+      - porkbun-api-credentials
