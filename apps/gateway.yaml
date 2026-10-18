@@ -11,6 +11,8 @@ spec:
     repoURL: https://github.com/alicevoid/staples
     targetRevision: main
     path: gateway
+    directory:
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway
