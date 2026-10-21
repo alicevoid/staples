@@ -31,7 +31,16 @@ spec:
           # upstream publishes no image; this is a current CI build of the source.
           # TODO: pin to @sha256:<digest> (kubectl get pod -o jsonpath imageID).
           image: ghcr.io/caiobcosta/livesync-bridge:latest
+          env:
+            # trust the host's NixOS CA bundle (mounted below), not Deno's built-in webpki roots
+            - name: DENO_TLS_CA_STORE
+              value: system
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           volumeMounts:
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
             - name: config
               mountPath: /app/dat          # current image runs from /app; reads ./dat/config.json
               readOnly: true
@@ -56,3 +65,8 @@ spec:
             type: Directory
         - name: deno
           emptyDir: {}   # ephemeral; bridge re-scans on restart (fine for a small vault)
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File

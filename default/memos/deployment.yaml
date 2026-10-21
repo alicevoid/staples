@@ -27,12 +27,22 @@ spec:
               value: "5230"
             - name: MEMOS_DATA
               value: /var/opt/memos
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 5230
           volumeMounts:
             - name: data
               mountPath: /var/opt/memos   # memos' default data dir
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: memos-data
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File

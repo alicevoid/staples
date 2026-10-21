@@ -58,11 +58,19 @@ spec:
               value: "1024"   # 1GB uploads
             # AI auto-tagging is off (no inference backend). To enable, add OPENAI_API_KEY
             # (or OLLAMA_BASE_URL + INFERENCE_TEXT_MODEL) via karakeep-secrets.
+            # trust the host's NixOS CA bundle (mounted below), not Node's built-in roots
+            - name: NODE_OPTIONS
+              value: --use-openssl-ca
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 3000
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
           resources:
             requests:
               cpu: 250m
@@ -74,6 +82,11 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: karakeep-data
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File
 ---
 # LoadBalancer: klipper binds :3000 on the host as an un-gated tailnet fallback.
 apiVersion: v1

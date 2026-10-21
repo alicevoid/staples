@@ -40,9 +40,14 @@ spec:
               value: /secrets/jwt-secret
             - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
               value: /secrets/smtp-password
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 9091
           volumeMounts:
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
             - name: config
               mountPath: /config
             - name: secrets
@@ -67,6 +72,11 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: authelia-data
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File
 ---
 # Traefik + the forwardAuth middleware reach Authelia here. :80 -> 9091 so the middleware
 # URL can omit the port.

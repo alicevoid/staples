@@ -38,11 +38,16 @@ spec:
                 secretKeyRef:
                   name: couchdb-secrets
                   key: password
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 5984
           volumeMounts:
             - name: data
               mountPath: /opt/couchdb/data
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
             - name: config
               mountPath: /opt/couchdb/etc/local.d/10-livesync.ini
               subPath: 10-livesync.ini   # single-file mount; don't clobber the entrypoint's docker.ini
@@ -70,3 +75,8 @@ spec:
         - name: config
           configMap:
             name: couchdb-config
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File
