@@ -88,14 +88,13 @@ spec:
             path: /etc/ssl/certs/ca-certificates.crt
             type: File
 ---
-# LoadBalancer: klipper binds :3000 on the host as an un-gated tailnet fallback.
 apiVersion: v1
 kind: Service
 metadata:
   name: karakeep
   namespace: karakeep
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: karakeep
   ports:

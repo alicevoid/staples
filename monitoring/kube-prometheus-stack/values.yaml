@@ -1,4 +1,4 @@
-# kube-prometheus-stack values (chart 91.8.1). Mirrors the live `helm get values`.
+# kube-prometheus-stack values (chart 91.8.1).
 # Admin + OAuth client secrets come from out-of-band Secrets (grafana-admin, grafana-oauth).
 # The Argo app sets ServerSideApply=true (the operator CRDs exceed the client-side limit).
 grafana:
@@ -36,8 +36,8 @@ grafana:
     enabled: true
     storageClassName: local-path
     size: 5Gi
-  # Prometheus is the default datasource; Loki added here. (Tempo dropped — nothing emits
-  # traces yet; re-add the chart + this datasource when an app is actually instrumented.)
+  # Prometheus is the default datasource; Loki is added here. Tempo was removed (nothing emits
+  # traces yet); re-add the chart and this datasource when an app is instrumented.
   additionalDataSources:
     - name: Loki
       type: loki

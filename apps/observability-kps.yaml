@@ -1,8 +1,7 @@
-# kube-prometheus-stack: Prometheus + Grafana + Alertmanager. The one Helm app (Argo
-#   multi-source: upstream chart + values from this repo via $values).
-#   releaseName MUST match the Nix release name or Argo builds a parallel stack instead of
-#   adopting (see README). ServerSideApply=true: the operator CRDs exceed the client-side
-#   annotation-size limit.
+# kube-prometheus-stack: Prometheus + Grafana + Alertmanager. Argo Helm app (upstream chart +
+#   values from this repo via $values). releaseName must stay "kube-prometheus-stack", or Argo
+#   installs a second stack instead of adopting this one (see README). ServerSideApply: the
+#   operator CRDs exceed the client-side annotation limit.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

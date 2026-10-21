@@ -1,5 +1,5 @@
-# ClusterIP: reached by Traefik (obsidian.pvc.tools) and, later, the in-cluster livesync-bridge
-# at http://couchdb.obsidian.svc:5984. No host exposure of its own.
+# ClusterIP: reached by the Gateway (obsidian.pvc.tools) and by livesync-bridge at
+# http://couchdb.obsidian.svc:5984. No host exposure of its own.
 apiVersion: v1
 kind: Service
 metadata:
