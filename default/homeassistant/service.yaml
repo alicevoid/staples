@@ -1,5 +1,6 @@
 # Home Assistant runs bare metal on ephara (NixOS, sutures hosts/ephara/homeassistant.nix), not in the cluster.
 # A Service with no selector plus a hand-made EndpointSlice gives the Gateway a backend that points at ephara.
+#   NOTE: needs EndpointSlice removed from Argo's resource.exclusions (sutures modules/k8s/argocd.nix).
 apiVersion: v1
 kind: Service
 metadata:
