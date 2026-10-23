@@ -26,6 +26,7 @@ monitoring/
   kube-prometheus-stack/  loki/  alloy/   Helm apps (upstream chart + values.yaml here)
 default/
   memos/  karakeep/   user-facing apps (hand-written plain YAML)
+  homeassistant/      Service + EndpointSlice only: HA runs bare metal on ephara, outside the cluster
   obsidian-livesync/  CouchDB (placeholder + mindvirus vaults) + livesync-bridge, which
                       materializes mindvirus -> /srv/vaults/mindvirus on pharika (for Claude)
 security/

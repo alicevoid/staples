@@ -1,0 +1,23 @@
+# homeassistant: Service + EndpointSlice to HA on ephara (outside the cluster). Manifests in default/homeassistant.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homeassistant
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: default/homeassistant
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homeassistant
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

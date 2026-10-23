@@ -1,0 +1,17 @@
+# No Authelia filter: the HA phone app cannot pass the gate. HA uses its own login (with MFA).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  parentRefs:
+    - name: pvc-tools
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - ha.pvc.tools
+  rules:
+    - backendRefs:
+        - name: homeassistant
+          port: 8123

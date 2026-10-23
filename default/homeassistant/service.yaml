@@ -1,0 +1,32 @@
+# Home Assistant runs bare metal on ephara (NixOS, sutures hosts/ephara/homeassistant.nix), not in the cluster.
+# A Service with no selector plus a hand-made EndpointSlice gives the Gateway a backend that points at ephara.
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: homeassistant-ephara
+  namespace: homeassistant
+  labels:
+    kubernetes.io/service-name: homeassistant
+    endpointslice.kubernetes.io/managed-by: staples
+addressType: IPv4
+ports:
+  - name: http
+    port: 8123
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.0.0.65 # ephara LAN (reserved on the Xfinity gateway)
+    conditions:
+      ready: true
