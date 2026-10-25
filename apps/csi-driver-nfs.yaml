@@ -1,0 +1,29 @@
+# csi-driver-nfs: dynamic PVCs on ephara's ZFS pool over NFS (StorageClass nfs-ephara).
+#   Upstream chart + values in storage/csi-driver-nfs. For bulk files only: no SQLite on NFS.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-driver-nfs
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+      chart: csi-driver-nfs
+      targetRevision: 4.13.6
+      helm:
+        releaseName: csi-driver-nfs
+        valueFiles:
+          - $values/storage/csi-driver-nfs/values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

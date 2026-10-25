@@ -32,6 +32,8 @@ default/
 security/
   cert-manager/  porkbun-webhook/   Helm apps (DNS-01 via Porkbun for the wildcard cert)
   issuers/            Let's Encrypt staging + prod ClusterIssuers
+storage/
+  csi-driver-nfs/     Helm app: StorageClass nfs-ephara, PVCs on ephara's ZFS pool over NFS
 gateway/
   namespace.yaml  certificate.yaml   pvc.tools + *.pvc.tools cert, consumed by the Gateway
   gateway.yaml        Cilium Gateway: :80 (redirect only) and :443 (*.pvc.tools)
@@ -47,7 +49,8 @@ needs the experimental Gateway API CRDs, which sutures installs. Routes in other
 Authelia because of the ReferenceGrant in `authelia`.
 
 Third-party software is consumed as Argo Helm apps (multi-source: upstream chart + a `values.yaml`
-here through `$values`): kube-prometheus-stack, loki, alloy, cert-manager and the Porkbun webhook.
+here through `$values`): kube-prometheus-stack, loki, alloy, cert-manager, the Porkbun webhook
+and csi-driver-nfs.
 The rule: use a third-party chart through Helm and tune it through values, never by hand-editing
 rendered output; write first-party apps (memos, karakeep, authelia, obsidian-livesync) as plain
 YAML. Charts that ship large CRDs (kube-prometheus-stack, cert-manager) set `ServerSideApply=true`,

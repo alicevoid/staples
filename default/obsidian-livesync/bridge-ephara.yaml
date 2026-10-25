@@ -1,0 +1,72 @@
+# livesync-bridge-ephara: a second bridge for the same (plaintext) mindvirus CouchDB DB. It keeps a
+# live copy of the vault as .md files at /data/vaults/mindvirus on ephara (ZFS dataset tank/vaults,
+# with snapshots). To CouchDB it is one more LiveSync device, like pharika's bridge (bridge.yaml).
+# Same Secret and user as bridge.yaml. hostPath type Directory: if the pool is not mounted,
+# the pod does not start (it never writes to ephara's root fs).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livesync-bridge-ephara
+  namespace: obsidian
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: livesync-bridge-ephara
+  template:
+    metadata:
+      labels:
+        app: livesync-bridge-ephara
+    spec:
+      securityContext:
+        runAsUser: 1000    # alice
+        runAsGroup: 100    # users
+        fsGroup: 100
+      nodeSelector:
+        kubernetes.io/hostname: ephara   # hostPath lives on ephara
+      containers:
+        - name: bridge
+          # upstream publishes no image; this is a current CI build of the source.
+          # TODO: pin to @sha256:<digest> (kubectl get pod -o jsonpath imageID).
+          image: ghcr.io/caiobcosta/livesync-bridge:latest
+          env:
+            # trust the host's NixOS CA bundle (mounted below), not Deno's built-in webpki roots
+            - name: DENO_TLS_CA_STORE
+              value: system
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
+          volumeMounts:
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
+            - name: config
+              mountPath: /app/dat          # current image runs from /app; reads ./dat/config.json
+              readOnly: true
+            - name: vault
+              mountPath: /app/data         # storage baseDir "data/mindvirus" -> /app/data/mindvirus
+            - name: deno
+              mountPath: /deno-dir   # writable Deno cache (we run as 1000, not the image user)
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: config
+          secret:
+            secretName: livesync-bridge-config   # key: config.json
+        - name: vault
+          hostPath:
+            path: /data/vaults
+            type: Directory
+        - name: deno
+          emptyDir: {}   # ephemeral; bridge re-scans on restart (fine for a small vault)
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File

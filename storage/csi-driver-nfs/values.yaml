@@ -1,0 +1,23 @@
+# csi-driver-nfs values. Chart defaults otherwise.
+#   NFS server: ephara (NixOS services.nfs.server in sutures hosts/ephara). Export /data/shared is the
+#   ZFS dataset tank/shared, allowed for the node IPs with no_root_squash (the controller makes and
+#   deletes PVC folders as root).
+
+controller:
+  # No VolumeSnapshot CRDs in this cluster. ZFS snapshots on ephara cover tank/shared instead.
+  enableSnapshotter: false
+
+storageClass:
+  create: true
+  name: nfs-ephara
+  parameters:
+    server: 10.0.0.65
+    share: /data/shared
+    # Readable folder names (<namespace>/<pvc>) instead of pvc-<uuid>, for browsing and backups.
+    subDir: ${pvc.metadata.namespace}/${pvc.metadata.name}
+  # Keep the data when a PVC is deleted. Remove the folder by hand on ephara if it is really unwanted.
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+  mountOptions:
+    - nfsvers=4.2
+    - hard
