@@ -44,6 +44,16 @@ spec:
               value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 9091
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 9091
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 9091
+            periodSeconds: 20
+            failureThreshold: 6
           volumeMounts:
             - name: host-ca
               mountPath: /etc/ssl/certs/ca-certificates.crt

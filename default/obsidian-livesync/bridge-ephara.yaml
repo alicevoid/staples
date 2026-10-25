@@ -9,7 +9,7 @@ metadata:
   name: livesync-bridge-ephara
   namespace: obsidian
 spec:
-  replicas: 1
+  replicas: 0   # until /data/vaults/mindvirus is seeded (ephara MIGRATION Phase 3 step 8)
   strategy:
     type: Recreate
   selector:
@@ -29,8 +29,7 @@ spec:
       containers:
         - name: bridge
           # upstream publishes no image; this is a current CI build of the source.
-          # TODO: pin to @sha256:<digest> (kubectl get pod -o jsonpath imageID).
-          image: ghcr.io/caiobcosta/livesync-bridge:latest
+          image: ghcr.io/caiobcosta/livesync-bridge:latest@sha256:19fc611ed8c31fffb8ca7b7c64c8376a303bb886ead52b9724fb2482c16b6d33
           env:
             # trust the host's NixOS CA bundle (mounted below), not Deno's built-in webpki roots
             - name: DENO_TLS_CA_STORE

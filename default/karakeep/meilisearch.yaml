@@ -31,6 +31,16 @@ spec:
               value: "true"
           ports:
             - containerPort: 7700
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 7700
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7700
+            periodSeconds: 20
+            failureThreshold: 6
           volumeMounts:
             - name: meili
               mountPath: /meili_data

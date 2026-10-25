@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: chrome
-          image: ghcr.io/karakeep-app/karakeep-chrome:release   # upstream ships only a floating release tag
+          image: ghcr.io/karakeep-app/karakeep-chrome:release@sha256:5b19bbb160e9ff60681a3abd97e1c4ec9f64212301410de658c3900ab7ef31e7
           args:
             - --disable-gpu
             - --disable-dev-shm-usage
@@ -27,6 +27,16 @@ spec:
             - --window-size=1440,900
           ports:
             - containerPort: 9222
+          readinessProbe:
+            httpGet:
+              path: /json/version
+              port: 9222
+          livenessProbe:
+            httpGet:
+              path: /json/version
+              port: 9222
+            periodSeconds: 20
+            failureThreshold: 6
           resources:
             requests:
               cpu: 100m

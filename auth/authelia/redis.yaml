@@ -21,12 +21,20 @@ spec:
         fsGroup: 999   # redis uid in the alpine image
       containers:
         - name: redis
-          image: redis:7-alpine
+          image: redis:7.4.11-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
           args:
             - --appendonly
             - "yes"
           ports:
             - containerPort: 6379
+          readinessProbe:
+            exec:
+              command: [ redis-cli, ping ]
+          livenessProbe:
+            exec:
+              command: [ redis-cli, ping ]
+            periodSeconds: 20
+            failureThreshold: 6
           volumeMounts:
             - name: data
               mountPath: /data

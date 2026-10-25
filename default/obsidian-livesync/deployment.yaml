@@ -26,7 +26,7 @@ spec:
         fsGroup: 5984   # lets couchdb (5984) write the PVC
       containers:
         - name: couchdb
-          image: couchdb:3.4   # pin, not :latest
+          image: couchdb:3.4.3@sha256:d9b6609989f1d47822e84005946cecc2fd49e4be5e4f35da960d4379f6c60de0
           env:
             - name: COUCHDB_USER
               valueFrom:
