@@ -1,6 +1,6 @@
 # jellyfin: media server at watch.pvc.tools, on ephara next to the media (JELLYFIN, stage 1: restore).
 #   Paths match the old Ubuntu server, so the restored database works unchanged:
-#   /var/lib/jellyfin (config and data in one folder), /var/cache/jellyfin, /media/jellyWD (read-only).
+#   /var/lib/jellyfin (data, config in config/), /var/cache/jellyfin, /media/jellyWD (read-only).
 #   Hardware transcoding (/dev/dri) comes in step 7, after the restore works.
 apiVersion: apps/v1
 kind: Deployment
@@ -30,6 +30,8 @@ spec:
       initContainers:
         # One-time seed from the old server's data folder (owned by UID 126, so this runs as root).
         #   Skips when .seeded exists. Remove after the first good start.
+        #   The backup holds the old /etc/jellyfin files next to the data. 10.11 needs config and data
+        #   in different folders (.jellyfin-config and .jellyfin-data markers), so they move to config/.
         - name: seed
           image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
           securityContext:
@@ -41,12 +43,20 @@ spec:
             - |
               dst=/var/lib/jellyfin
               src=/media/jellyWD/migration_backup/migration_backup/jellyfin/jellyfin
-              if [ -e "$dst/.seeded" ]; then echo "already seeded"; exit 0; fi
-              [ -f "$src/data/jellyfin.db" ] || { echo "seed source missing: $src"; exit 1; }
-              cp -a "$src/." "$dst/"
+              if [ -e "$dst/.seeded" ]; then
+                echo "already seeded"
+              else
+                [ -f "$src/data/jellyfin.db" ] || { echo "seed source missing: $src"; exit 1; }
+                cp -a "$src/." "$dst/"
+                date > "$dst/.seeded"
+                echo "seeded from $src"
+              fi
+              mkdir -p "$dst/config"
+              for f in .jellyfin-config system.xml network.xml encoding.xml branding.xml database.xml \
+                       logging.json logging.default.json migrations.xml migrations.xml.backup; do
+                if [ -e "$dst/$f" ] && [ ! -e "$dst/config/$f" ]; then mv "$dst/$f" "$dst/config/$f"; echo "moved $f to config/"; fi
+              done
               chown -R 2100:2100 "$dst"
-              date > "$dst/.seeded"
-              echo "seeded from $src"
           volumeMounts:
             - name: data
               mountPath: /var/lib/jellyfin
@@ -60,7 +70,7 @@ spec:
             - name: JELLYFIN_DATA_DIR
               value: /var/lib/jellyfin
             - name: JELLYFIN_CONFIG_DIR
-              value: /var/lib/jellyfin
+              value: /var/lib/jellyfin/config
             - name: JELLYFIN_LOG_DIR
               value: /var/lib/jellyfin/log
             - name: JELLYFIN_CACHE_DIR
