@@ -1,0 +1,28 @@
+# Anime (see pv-anime.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: anime
+  namespace: shoko
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  volumeName: shoko-anime
+  resources:
+    requests:
+      storage: 12Ti
+---
+# Config, SQLite database and AniDB cache. local-path on ephara's NVMe, backed up nightly by ephara-pvc-backup.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: config
+  namespace: shoko
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
