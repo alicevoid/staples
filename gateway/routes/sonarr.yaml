@@ -1,0 +1,37 @@
+# Admins only (Authelia rule in auth/authelia/configmap.yaml). Sonarr itself trusts this gate.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: sonarr
+  namespace: sonarr
+spec:
+  parentRefs:
+    - name: pvc-tools
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - sonarr.pvc.tools
+  rules:
+    - filters:
+        - type: ExternalAuth
+          externalAuth:
+            protocol: HTTP
+            backendRef:
+              name: authelia
+              namespace: authelia
+              port: 80
+            http:
+              path: /api/authz/ext-authz/
+              allowedHeaders:
+                - accept
+                - cookie
+                - proxy-authorization
+                - x-forwarded-proto
+              allowedResponseHeaders:
+                - Remote-User
+                - Remote-Groups
+                - Remote-Email
+                - Remote-Name
+      backendRefs:
+        - name: sonarr
+          port: 8989

@@ -37,10 +37,12 @@ data:
           subject:
             - group:friends
             - group:admins
-        # argocd + hubble admin UIs: admins only (no friends). Still 2FA.
+        # admin UIs (argocd, hubble, sonarr, radarr): admins only (no friends). Still 2FA.
         - domain:
             - argocd.pvc.tools
             - hubble.pvc.tools
+            - sonarr.pvc.tools
+            - radarr.pvc.tools
           policy: two_factor
           subject:
             - group:admins

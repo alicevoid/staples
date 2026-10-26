@@ -20,6 +20,12 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: kube-system
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: sonarr
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: radarr
   to:
     - group: ""
       kind: Service
