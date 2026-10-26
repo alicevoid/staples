@@ -50,9 +50,10 @@ spec:
             requests:
               cpu: 100m
               memory: 512Mi
-            # The first run hashes about 730 GB. Two cores keep ephara cool (dead rear fan).
+            # The first run hashes about 730 GB. At 2 cores the CPU reached 93 C (dead rear fan),
+            #   so hashing gets 1 core until the fan is replaced.
             limits:
-              cpu: "2"
+              cpu: "1"
               memory: 4Gi
           volumeMounts:
             - name: config
