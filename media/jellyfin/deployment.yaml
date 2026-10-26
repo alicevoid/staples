@@ -27,46 +27,12 @@ spec:
         runAsGroup: 2100
         fsGroup: 2100
         supplementalGroups: [ 2000 ]   # media; add 303 (render) with /dev/dri in step 7
-      initContainers:
-        # One-time seed from the old server's data folder (owned by UID 126, so this runs as root).
-        #   Skips when .seeded exists. Remove after the first good start.
-        #   The backup holds the old /etc/jellyfin files next to the data. 10.11 needs config and data
-        #   in different folders (.jellyfin-config and .jellyfin-data markers), so they move to config/.
-        - name: seed
-          image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-          command:
-            - sh
-            - -euc
-            - |
-              dst=/var/lib/jellyfin
-              src=/media/jellyWD/migration_backup/migration_backup/jellyfin/jellyfin
-              if [ -e "$dst/.seeded" ]; then
-                echo "already seeded"
-              else
-                [ -f "$src/data/jellyfin.db" ] || { echo "seed source missing: $src"; exit 1; }
-                cp -a "$src/." "$dst/"
-                date > "$dst/.seeded"
-                echo "seeded from $src"
-              fi
-              mkdir -p "$dst/config"
-              for f in .jellyfin-config system.xml network.xml encoding.xml branding.xml database.xml \
-                       logging.json logging.default.json migrations.xml migrations.xml.backup; do
-                if [ -e "$dst/$f" ] && [ ! -e "$dst/config/$f" ]; then mv "$dst/$f" "$dst/config/$f"; echo "moved $f to config/"; fi
-              done
-              chown -R 2100:2100 "$dst"
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/jellyfin
-            - name: legacy
-              mountPath: /media/jellyWD
-              readOnly: true
       containers:
         - name: jellyfin
           image: jellyfin/jellyfin:10.11.11@sha256:aefb67e6a7ff1debdd154a78a7bbb780fd0c873d8639210a7f6a2016ad2b35db
           env:
+            - name: HOME   # .NET keeps its data-protection keys in $HOME/.aspnet (the old server's layout)
+              value: /var/lib/jellyfin
             - name: JELLYFIN_DATA_DIR
               value: /var/lib/jellyfin
             - name: JELLYFIN_CONFIG_DIR
