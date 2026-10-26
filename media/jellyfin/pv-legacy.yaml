@@ -1,0 +1,28 @@
+# The old media drive's copy on ephara's pool, at the old server's path (/media/jellyWD), so the
+#   restored database finds every library unchanged (JELLYFIN, stage 1). Static local PV, bound only
+#   to jellyfin-legacy (claimRef). Retain: deleting the PVC never touches the files.
+#   Remove in stage 2, when import/wd-green/ is empty.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-legacy
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: jellyfin
+    name: jellyfin-legacy
+  local:
+    path: /data/import/wd-green
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ephara

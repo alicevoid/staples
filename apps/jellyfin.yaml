@@ -1,0 +1,23 @@
+# jellyfin: media server on ephara (watch.pvc.tools). Manifests in media/jellyfin.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: media/jellyfin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jellyfin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

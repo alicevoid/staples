@@ -1,0 +1,43 @@
+# Old media, read-only in the pod (see pv-legacy.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-legacy
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: jellyfin-legacy
+  resources:
+    requests:
+      storage: 2Ti
+---
+# Config, database, metadata and plugins (/var/lib/jellyfin). local-path on ephara's NVMe:
+#   SQLite never goes on NFS. Backed up nightly by ephara-pvc-backup.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-data
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Transcodes and image cache (/var/cache/jellyfin). Not backed up.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cache
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
