@@ -1,0 +1,16 @@
+# intel-device-plugins-gpu values: one GpuDevicePlugin for ephara's iGPU (HD Graphics 530, QuickSync).
+#   A pod asks for it with resources.limits gpu.intel.com/i915: 1, and gets /dev/dri without
+#   running privileged. Used by Jellyfin for hardware transcoding.
+name: intel-gpu
+
+# No Node Feature Discovery in this cluster: select ephara by name, not by an NFD label.
+nodeFeatureRule: false
+nodeSelector:
+  intel.feature.node.kubernetes.io/gpu: null   # drop the chart's default (Helm merges maps)
+  kubernetes.io/hostname: ephara
+
+# How many pods may share the GPU at the same time. Raise it when a second app needs it.
+sharedDevNum: 1
+
+# GPU metrics resource for a telemetry exporter. Not used here.
+enableMonitoring: false

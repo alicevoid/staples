@@ -29,6 +29,8 @@ default/
   homeassistant/      Service + EndpointSlice only: HA runs bare metal on ephara, outside the cluster
   obsidian-livesync/  CouchDB (placeholder + mindvirus vaults) + livesync-bridge, which
                       materializes mindvirus -> /srv/vaults/mindvirus on pharika (for Claude)
+devices/
+  intel-device-plugins/  Helm apps: Intel operator + GPU plugin (ephara's iGPU for Jellyfin)
 media/
   jellyfin/           media server on ephara (watch.pvc.tools); old media on a static local PV
 security/

@@ -1,0 +1,33 @@
+# intel-gpu-plugin: the GPU device plugin on ephara (resource gpu.intel.com/i915), for Jellyfin.
+#   Upstream chart + values in devices/intel-device-plugins. Wave 1: its GpuDevicePlugin needs the
+#   operator's CRD (wave 0).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intel-gpu-plugin
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://intel.github.io/helm-charts/
+      chart: intel-device-plugins-gpu
+      targetRevision: 0.37.1
+      helm:
+        releaseName: intel-gpu-plugin
+        valueFiles:
+          - $values/devices/intel-device-plugins/gpu-values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inteldeviceplugins-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true   # GpuDevicePlugin CRD comes from the operator

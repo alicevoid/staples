@@ -1,0 +1,32 @@
+# intel-device-plugins-operator: runs Intel's device plugins (the GPU plugin, apps/intel-gpu-plugin.yaml).
+#   Upstream chart + values in devices/intel-device-plugins. Needs cert-manager for its webhook.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intel-device-plugins-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://intel.github.io/helm-charts/
+      chart: intel-device-plugins-operator
+      targetRevision: 0.37.1
+      helm:
+        releaseName: intel-device-plugins-operator
+        valueFiles:
+          - $values/devices/intel-device-plugins/operator-values.yaml
+    - repoURL: https://github.com/alicevoid/staples
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inteldeviceplugins-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true   # the device-plugin CRDs are large

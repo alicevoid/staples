@@ -1,0 +1,4 @@
+# intel-device-plugins-operator values. Chart defaults otherwise.
+#   The operator runs Intel's device plugins from their custom resources (here: one GpuDevicePlugin,
+#   see gpu-values.yaml). Its webhook certificate comes from cert-manager (a self-signed Issuer in
+#   the chart).
