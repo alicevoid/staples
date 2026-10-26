@@ -7,7 +7,8 @@ metadata:
   name: shoko
   namespace: shoko
 spec:
-  replicas: 1
+  # 0 since 2026-10-26: anime moved to Sonarr. The config PVC keeps the hashes for a restart.
+  replicas: 0
   strategy:
     type: Recreate   # RWO volume and a SQLite database: one pod at a time
   selector:
