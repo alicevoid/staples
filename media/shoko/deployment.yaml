@@ -7,7 +7,9 @@ metadata:
   name: shoko
   namespace: shoko
 spec:
-  replicas: 1
+  # 0 after ephara overheated during the first hash run (2026-10-26). Set back to 1 after the
+  #   extra hashes (CRC, MD5, SHA1) are off in settings-server.json.
+  replicas: 0
   strategy:
     type: Recreate   # RWO volume and a SQLite database: one pod at a time
   selector:
