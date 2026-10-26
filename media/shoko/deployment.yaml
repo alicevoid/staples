@@ -7,9 +7,7 @@ metadata:
   name: shoko
   namespace: shoko
 spec:
-  # 0 after ephara overheated during the first hash run (2026-10-26). Set back to 1 after the
-  #   extra hashes (CRC, MD5, SHA1) are off in settings-server.json.
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate   # RWO volume and a SQLite database: one pod at a time
   selector:
@@ -52,10 +50,7 @@ spec:
             requests:
               cpu: 100m
               memory: 512Mi
-            # The first run hashes about 730 GB. At 2 cores the CPU reached 93 C (dead rear fan),
-            #   so hashing gets 1 core until the fan is replaced.
             limits:
-              cpu: "1"
               memory: 4Gi
           volumeMounts:
             - name: config
