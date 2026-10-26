@@ -26,6 +26,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: radarr
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: shoko
   to:
     - group: ""
       kind: Service
