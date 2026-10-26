@@ -1,0 +1,23 @@
+# sonarr: series manager: matches, renames and moves shows into /data/media/watch/shows. Manifests in media/sonarr.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sonarr
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: media/sonarr
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sonarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

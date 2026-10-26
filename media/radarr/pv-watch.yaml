@@ -1,0 +1,28 @@
+# /data/media/watch on ephara, read-write, at the same path in the pod. The whole folder, not only
+#   movies/: imports from the old folders must be renames inside one mount (instant), not copies.
+#   Only the root folders set in the Radarr UI are managed. oddities/ and extras/ are never added.
+#   Static local PV, bound only to radarr/watch (claimRef). Retain: deleting the PVC never touches the files.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-watch
+spec:
+  capacity:
+    storage: 12Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: radarr
+    name: watch
+  local:
+    path: /data/media/watch
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ephara

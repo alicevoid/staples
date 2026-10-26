@@ -1,0 +1,28 @@
+# Media (see pv-watch.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: watch
+  namespace: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: sonarr-watch
+  resources:
+    requests:
+      storage: 12Ti
+---
+# Config and SQLite database. local-path on ephara's NVMe, backed up nightly by ephara-pvc-backup.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: config
+  namespace: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

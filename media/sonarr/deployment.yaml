@@ -1,0 +1,82 @@
+# sonarr: series manager: matches, renames and moves shows into /data/media/watch/shows.
+#   On ephara next to the media, gated by Authelia (sonarr.pvc.tools). No download client yet (stage 3):
+#   for now it only imports and renames the existing library (JELLYFIN, stage 2b).
+#   Runs as its own UID with group media (2000), so files stay alice-readable and Jellyfin-readable.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: sonarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volumes and a SQLite database: one pod at a time
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      nodeSelector:
+        pvc.tools/storage: "true"
+      securityContext:
+        runAsUser: 2101
+        runAsGroup: 2000   # media: new files and folders belong to the media group
+        fsGroup: 2000
+      containers:
+        - name: sonarr
+          image: ghcr.io/home-operations/sonarr:4.0.20.3012@sha256:1f19eb5e0f421418c1a956bbe01310a0141423afe28bd9a4b1dcb8629ff2bce2
+          env:
+            - name: SONARR__SERVER__PORT
+              value: "8989"
+            # The image defaults to the develop branch. Updates come from the pinned image anyway,
+            #   but the in-app update notices should follow the stable branch.
+            - name: SONARR__UPDATE__BRANCH
+              value: main
+            # Authelia guards the route, so Sonarr trusts it instead of asking for its own login.
+            - name: SONARR__AUTH__METHOD
+              value: External
+            - name: SONARR__AUTH__REQUIRED
+              value: DisabledForLocalAddresses
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
+          ports:
+            - containerPort: 8989
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8989
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8989
+            periodSeconds: 30
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: watch
+              mountPath: /data/media/watch
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: config
+        - name: watch
+          persistentVolumeClaim:
+            claimName: watch
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File
