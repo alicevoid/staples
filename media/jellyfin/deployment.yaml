@@ -8,7 +8,7 @@ metadata:
   name: jellyfin
   namespace: jellyfin
 spec:
-  replicas: 1
+  replicas: 0   # stage 2a: stopped while the media moves to /data/media/watch
   strategy:
     type: Recreate   # RWO volumes: one pod at a time
   selector:
