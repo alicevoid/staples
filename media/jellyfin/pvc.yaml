@@ -1,17 +1,17 @@
-# Old media, read-only in the pod (see pv-legacy.yaml).
+# Streamed media, read-only in the pod (see pv-watch.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: jellyfin-legacy
+  name: jellyfin-watch
   namespace: jellyfin
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
-  volumeName: jellyfin-legacy
+  volumeName: jellyfin-watch
   resources:
     requests:
-      storage: 2Ti
+      storage: 12Ti
 ---
 # Config, database, metadata and plugins (/var/lib/jellyfin). local-path on ephara's NVMe:
 #   SQLite never goes on NFS. Backed up nightly by ephara-pvc-backup.

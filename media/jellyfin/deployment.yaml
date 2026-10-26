@@ -1,6 +1,7 @@
 # jellyfin: media server at watch.pvc.tools, on ephara next to the media (JELLYFIN, stage 1: restore).
 #   Paths match the old Ubuntu server, so the restored database works unchanged:
 #   /var/lib/jellyfin (data, config in config/), /var/cache/jellyfin, /media/jellyWD (read-only).
+#   /media/jellyWD is /data/media/watch on ephara (pv-watch.yaml). Keep that path: item IDs depend on it.
 #   Hardware transcoding: the iGPU (QuickSync) through Intel's GPU device plugin (gpu.intel.com/i915).
 apiVersion: apps/v1
 kind: Deployment
@@ -8,7 +9,7 @@ metadata:
   name: jellyfin
   namespace: jellyfin
 spec:
-  replicas: 0   # stage 2a: stopped while the media moves to /data/media/watch
+  replicas: 1
   strategy:
     type: Recreate   # RWO volumes: one pod at a time
   selector:
@@ -78,7 +79,7 @@ spec:
               mountPath: /var/lib/jellyfin
             - name: cache
               mountPath: /var/cache/jellyfin
-            - name: legacy
+            - name: watch
               mountPath: /media/jellyWD
               readOnly: true
             - name: host-ca
@@ -91,9 +92,9 @@ spec:
         - name: cache
           persistentVolumeClaim:
             claimName: jellyfin-cache
-        - name: legacy
+        - name: watch
           persistentVolumeClaim:
-            claimName: jellyfin-legacy
+            claimName: jellyfin-watch
             readOnly: true
         # host CA bundle from sutures (security.pki); restart the pod after a cacert update
         - name: host-ca

@@ -1,0 +1,28 @@
+# Streamed media on ephara's pool (/data/media/watch). Mounted in the pod at the old server's path
+#   (/media/jellyWD): Jellyfin derives item IDs from paths, so the path inside the pod must not change
+#   (JELLYFIN, stage 2a). Static local PV, bound only to jellyfin-watch (claimRef). Retain: deleting
+#   the PVC never touches the files.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-watch
+spec:
+  capacity:
+    storage: 12Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: jellyfin
+    name: jellyfin-watch
+  local:
+    path: /data/media/watch
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ephara
