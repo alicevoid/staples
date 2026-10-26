@@ -62,8 +62,12 @@ spec:
           hostPath:
             path: /srv/vaults
             type: Directory
+        # Persistent: Deno localStorage holds the per-file stat records and the CouchDB checkpoint.
+        #   Without them every restart sends the whole folder to CouchDB again, and the bridge does
+        #   not check which copy is newer, so a note edited while it was down can be overwritten.
         - name: deno
-          emptyDir: {}   # ephemeral; bridge re-scans on restart (fine for a small vault)
+          persistentVolumeClaim:
+            claimName: livesync-bridge-state
         # host CA bundle from sutures (security.pki); restart the pod after a cacert update
         - name: host-ca
           hostPath:

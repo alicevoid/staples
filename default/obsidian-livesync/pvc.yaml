@@ -11,3 +11,17 @@ spec:
   resources:
     requests:
       storage: 10Gi
+---
+# livesync-bridge state (Deno dir: localStorage and module cache). See bridge.yaml.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livesync-bridge-state
+  namespace: obsidian
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
