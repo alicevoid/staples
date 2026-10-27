@@ -34,7 +34,6 @@ devices/
 media/
   jellyfin/           media server on ephara (watch.pvc.tools); /data/media/watch on a static local PV
   sonarr/  radarr/    show and movie managers (admins only); import and rename into /data/media/watch
-  shoko/              anime metadata server (admins only); reads anime/ for the Shokofin plugin in Jellyfin
 security/
   cert-manager/  porkbun-webhook/   Helm apps (DNS-01 via Porkbun for the wildcard cert)
   issuers/            Let's Encrypt staging + prod ClusterIssuers
