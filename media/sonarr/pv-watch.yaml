@@ -1,6 +1,6 @@
-# /data/media/watch on ephara, read-write, at the same path in the pod. The whole folder, not only
-#   shows/: imports from the old folders must be renames inside one mount (instant), not copies.
-#   Only the root folders set in the Sonarr UI are managed. oddities/ and extras/ are never added.
+# /data/media/watch on ephara, read-write, at the same path in the pod. The whole folder, so a
+#   move inside it is an instant rename. Sonarr manages only the root folders set in its UI.
+#   Never add oddities/ or extras/.
 #   Static local PV, bound only to sonarr/watch (claimRef). Retain: deleting the PVC never touches the files.
 apiVersion: v1
 kind: PersistentVolume

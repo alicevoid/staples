@@ -1,8 +1,7 @@
-# jellyfin: media server at watch.pvc.tools, on ephara next to the media (JELLYFIN, stage 1: restore).
-#   Paths match the old Ubuntu server, so the restored database works unchanged:
-#   /var/lib/jellyfin (data, config in config/), /var/cache/jellyfin, /media/jellyWD (read-only).
-#   /media/jellyWD is /data/media/watch on ephara (pv-watch.yaml). Keep that path: item IDs depend on it.
-#   Hardware transcoding: the iGPU (QuickSync) through Intel's GPU device plugin (gpu.intel.com/i915).
+# jellyfin: media server at watch.pvc.tools, on ephara next to the media.
+#   Paths: /var/lib/jellyfin (data, config in config/), /var/cache/jellyfin, and /media/jellyWD
+#   (read-only, /data/media/watch on ephara). Keep these paths: the database and item IDs depend on them.
+#   Hardware transcoding: the iGPU (QuickSync) through Intel's GPU device plugin.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,7 +31,7 @@ spec:
         - name: jellyfin
           image: jellyfin/jellyfin:10.11.11@sha256:aefb67e6a7ff1debdd154a78a7bbb780fd0c873d8639210a7f6a2016ad2b35db
           env:
-            - name: HOME   # .NET keeps its data-protection keys in $HOME/.aspnet (the old server's layout)
+            - name: HOME   # .NET keeps its data-protection keys in $HOME/.aspnet
               value: /var/lib/jellyfin
             - name: JELLYFIN_DATA_DIR
               value: /var/lib/jellyfin
@@ -50,7 +49,7 @@ spec:
               value: /etc/ssl/certs/ca-certificates.crt
           ports:
             - containerPort: 8096
-          # The first start migrates the old database, which can take minutes.
+          # A start after a version bump migrates the database, which can take minutes.
           startupProbe:
             httpGet:
               path: /health

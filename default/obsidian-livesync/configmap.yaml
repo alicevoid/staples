@@ -1,7 +1,6 @@
-# The canonical CouchDB settings Obsidian LiveSync needs: single_node (auto-creates the system
-# DBs), require_valid_user (+ _except_for_up so /_up health checks pass), and CORS for Obsidian's
-# origins (desktop/iOS/Android). Mounted via subPath so it doesn't clobber the entrypoint's
-# docker.ini. Rationale in QUIRKS.
+# CouchDB settings for Obsidian LiveSync: single_node (creates the system databases),
+# require_valid_user (except /_up, for health checks), and CORS for Obsidian's origins.
+# Mounted by subPath, so the entrypoint's docker.ini stays in place.
 apiVersion: v1
 kind: ConfigMap
 metadata:

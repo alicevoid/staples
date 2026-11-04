@@ -1,8 +1,7 @@
-# livesync-bridge: materializes the (plaintext) mindvirus CouchDB DB as .md files at
-# /srv/vaults/mindvirus on pharika, bidirectionally, so a host/tmux Claude can read+write the AI
-# vault. Runs as alice (1000:100) so the files are hers; reaches CouchDB in-cluster. Config is the
-# out-of-band Secret `livesync-bridge-config` (holds the password, not in git). placeholder is
-# never bridged (E2EE, device-only). Image/path quirks are in QUIRKS.
+# livesync-bridge: syncs the plaintext mindvirus database both ways with Markdown files in
+# /srv/vaults/mindvirus on pharika, so agents on the host can read and write the vault.
+# Runs as alice (1000:100), so the files are hers. Config, with the password, is in the
+# livesync-bridge-config Secret. The placeholder vault is E2EE and never bridged.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

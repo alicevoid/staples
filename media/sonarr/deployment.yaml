@@ -1,6 +1,5 @@
 # sonarr: series manager: matches, renames and moves shows into /data/media/watch/shows.
-#   On ephara next to the media, gated by Authelia (sonarr.pvc.tools). No download client yet (stage 3):
-#   for now it only imports and renames the existing library (JELLYFIN, stage 2b).
+#   On ephara next to the media, gated by Authelia (sonarr.pvc.tools).
 #   Runs as its own UID with group media (2000), so files stay alice-readable and Jellyfin-readable.
 apiVersion: apps/v1
 kind: Deployment
@@ -31,8 +30,7 @@ spec:
           env:
             - name: SONARR__SERVER__PORT
               value: "8989"
-            # The image defaults to the develop branch. Updates come from the pinned image anyway,
-            #   but the in-app update notices should follow the stable branch.
+            # The image defaults to the develop branch. In-app update notices follow stable.
             - name: SONARR__UPDATE__BRANCH
               value: main
             # Authelia guards the route, so Sonarr trusts it instead of asking for its own login.

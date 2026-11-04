@@ -1,6 +1,5 @@
 # radarr: movie manager: matches, renames and moves movies into /data/media/watch/movies.
-#   On ephara next to the media, gated by Authelia (radarr.pvc.tools). No download client yet (stage 3):
-#   for now it only imports and renames the existing library (JELLYFIN, stage 2b).
+#   On ephara next to the media, gated by Authelia (radarr.pvc.tools).
 #   Runs as its own UID with group media (2000), so files stay alice-readable and Jellyfin-readable.
 apiVersion: apps/v1
 kind: Deployment
@@ -31,8 +30,7 @@ spec:
           env:
             - name: RADARR__SERVER__PORT
               value: "7878"
-            # The image defaults to the develop branch. Updates come from the pinned image anyway,
-            #   but the in-app update notices should follow the stable branch.
+            # The image defaults to the develop branch. In-app update notices follow stable.
             - name: RADARR__UPDATE__BRANCH
               value: master
             # Authelia guards the route, so Radarr trusts it instead of asking for its own login.

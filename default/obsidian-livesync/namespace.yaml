@@ -1,5 +1,5 @@
 # obsidian-livesync: CouchDB backing two Obsidian LiveSync vaults (placeholder + mindvirus).
-#   Native-client app, so CouchDB's own auth, not Authelia (same as Jellyfin would be).
+#   Native client, so CouchDB's own auth in place of Authelia.
 apiVersion: v1
 kind: Namespace
 metadata:

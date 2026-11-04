@@ -1,6 +1,5 @@
-# Authelia non-secret config. Who-can-log-in + OIDC/SMTP/session secrets live in the
-# out-of-band authelia-secrets Secret (mounted at /secrets), merged in as a 2nd --config.
-# The deeper "why" behind each knob is in the Obsidian AUTHELIA/QUIRKS notes, not inline.
+# Authelia config without secrets. The users database and the OIDC, SMTP and session secrets
+# are in the authelia-secrets Secret (mounted at /secrets), loaded as a second --config.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -47,7 +46,7 @@ data:
           subject:
             - group:admins
 
-    # SSO cookie across *.pvc.tools. tuned "quiet" (remembered device -> ~3 months)
+    # SSO cookie across *.pvc.tools
     session:
       # Redis session store so restarts don't log everyone out (cluster-internal, no pw)
       redis:

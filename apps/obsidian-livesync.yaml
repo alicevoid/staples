@@ -1,5 +1,5 @@
 # obsidian-livesync: CouchDB for Obsidian LiveSync (placeholder + mindvirus vaults).
-#   Plain-YAML first-party app. Manifests in default/obsidian-livesync.
+#   Manifests in default/obsidian-livesync.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

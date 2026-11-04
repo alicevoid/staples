@@ -23,7 +23,7 @@ spec:
         fsGroup: 1000   # let it write the PVC regardless of uid
       containers:
         - name: authelia
-          image: ghcr.io/authelia/authelia:4.39.28   # pin; bump deliberately
+          image: ghcr.io/authelia/authelia:4.39.28
           # second --config pulls the OIDC block (hmac/jwks/clients) from the Secret, out of
           # this public repo. /secrets/oidc.yml must exist or Authelia won't start.
           args:

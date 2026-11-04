@@ -1,6 +1,5 @@
-# alloy: log collector DaemonSet; tails pod logs via the k8s API and ships them to Loki.
-# Consumed by apps/observability-alloy.yaml as an Argo Helm source (grafana/alloy chart 1.13.0)
-# plus these values via $values. Change settings here; Argo re-renders the chart.
+# alloy: log collector DaemonSet. Reads pod logs through the k8s API and sends them to Loki.
+#   Values for apps/observability-alloy.yaml.
 alloy:
   configMap:
     content: |-

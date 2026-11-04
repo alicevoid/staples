@@ -1,6 +1,5 @@
-# CouchDB for Obsidian LiveSync (placeholder + mindvirus DBs). Single-node, RWO -> Recreate.
-# Admin creds from the out-of-band couchdb-secrets Secret. (LiveSync config + the run-as-couchdb
-# quirk are written up in QUIRKS.)
+# CouchDB for Obsidian LiveSync (placeholder + mindvirus databases).
+# Admin credentials come from the couchdb-secrets Secret.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,8 +18,8 @@ spec:
         app: couchdb
     spec:
       securityContext:
-        # run as couchdb (5984), not root, to skip the image's root-only chown-everything step
-        # (it fails on the read-only config mount; see QUIRKS)
+        # As couchdb (5984), the image skips its root-only chown step, which fails on the
+        # read-only config mount.
         runAsUser: 5984
         runAsGroup: 5984
         fsGroup: 5984   # lets couchdb (5984) write the PVC
