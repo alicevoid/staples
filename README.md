@@ -65,8 +65,10 @@ so Argo adopts the running release instead of duplicating it. Bump a chart by ch
 
 ## Secrets
 
-Public-safe repo: zero secrets in git. These Secrets are hand-created in-cluster and referenced by
-name only. Argo never touches the Secret objects, so a sync or prune won't delete them.
+Public-safe repo: zero secrets here. Every Secret below is encrypted with sops in the `sutures`
+repo (`secrets/cluster/`) and applied by pharika at each `nixos-rebuild switch`
+(`sutures/modules/k8s/secrets.nix`). Manifests here reference them by name only. Argo never
+touches the Secret objects, so a sync or prune won't delete them.
 
 | Secret | namespace | used by |
 | --- | --- | --- |
@@ -74,12 +76,14 @@ name only. Argo never touches the Secret objects, so a sync or prune won't delet
 | `karakeep-secrets` | karakeep | karakeep + meilisearch (nextauth-secret, meili-master-key, oauth-client-secret) |
 | `grafana-admin` | monitoring | kube-prometheus-stack Grafana admin (admin-user, admin-password) |
 | `grafana-oauth` | monitoring | Grafana OIDC client-secret |
+| `alertmanager-config` | monitoring | the whole Alertmanager config (routes, SMTP password, recipient) |
 | `couchdb-secrets` | obsidian | CouchDB admin (username, password) for Obsidian LiveSync; also used by livesync-bridge |
 | `argocd-oidc` | argocd | ArgoCD OIDC client-secret (needs label `app.kubernetes.io/part-of=argocd`) |
 | `porkbun-api-credentials` | cert-manager | Porkbun DNS-01 webhook (api-key, secret-key) |
 | `livesync-bridge-config` | obsidian | livesync-bridge `config.json` (couchdb peer creds + mindvirus<->/srv/vaults storage peer) |
 
-Encrypting secrets into git (sops-nix / agenix) is a later level-up.
+To change one: `sops secrets/cluster/<name>.yaml` (or `<name>.<file>.bin`) in `sutures` on athreos,
+push, switch pharika. A new Secret also needs an entry in `modules/k8s/secrets.nix`.
 
 ## How it reconciles
 
