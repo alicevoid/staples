@@ -67,6 +67,18 @@ prometheus:
             requests:
               storage: 20Gi
 
+# k3s runs the scheduler and controller-manager inside the k3s process (bound to 127.0.0.1),
+# Cilium replaces kube-proxy, and the datastore is sqlite (kine), not etcd. Nothing to scrape.
+# Disabling them also drops their "*Down" alert rules.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
 alertmanager:
   alertmanagerSpec:
     storage:

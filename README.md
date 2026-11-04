@@ -113,8 +113,3 @@ kubectl config set-context --current --namespace=argocd
 - Helm apps must pin `helm.releaseName` to the live release
   name. Argo defaults the release name to the Application name; if it differs, Argo installs a
   parallel stack instead of adopting.
-
-## Known follow-ups
-
-- `traefik-porkbun` (kube-system) is unused after the cutover and can be deleted.
-- obsidian.pvc.tools lost its Traefik rate limit; re-add as a CiliumEnvoyConfig `local_ratelimit`.
