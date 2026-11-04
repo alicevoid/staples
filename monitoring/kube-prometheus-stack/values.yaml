@@ -79,6 +79,10 @@ kubeEtcd:
 
 alertmanager:
   alertmanagerSpec:
+    # The whole config (routes, SMTP password, recipient) is the alertmanager-config Secret, so the
+    #   address stays out of this public repo. A redacted copy of the routes is in the vault (QUIRKS).
+    useExistingSecret: true
+    configSecret: alertmanager-config
     storage:
       volumeClaimTemplate:
         spec:
