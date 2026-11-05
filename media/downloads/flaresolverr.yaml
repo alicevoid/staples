@@ -1,0 +1,85 @@
+# flaresolverr: opens Cloudflare-protected indexer pages in a headless Chromium and hands the
+#   cookies back to Prowlarr. Used only for indexers with the tag "flaresolverr" (Prowlarr >
+#   Settings > Indexers > Indexer Proxies). In-cluster only, no route: it has no login.
+#   Traffic goes out the home connection, like Prowlarr's own.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+  namespace: downloads
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaresolverr
+  template:
+    metadata:
+      labels:
+        app: flaresolverr
+    spec:
+      nodeSelector:
+        pvc.tools/storage: "true"
+      containers:
+        - name: flaresolverr
+          # Runs as the image's own user (flaresolverr), which owns /app where Chromium keeps
+          #   its profile. The image names the user, not the UID, so runAsNonRoot cannot check it.
+          image: ghcr.io/flaresolverr/flaresolverr:v3.5.2@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ "ALL" ]
+          env:
+            - name: LOG_LEVEL
+              value: info
+            - name: TZ
+              value: America/Los_Angeles
+          ports:
+            - containerPort: 8191
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8191
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8191
+            periodSeconds: 30
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 1Gi   # Chromium; about 10 to 30 MB per open request
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: shm
+              mountPath: /dev/shm
+            - name: config
+              mountPath: /config
+      volumes:
+        # Upstream asks for a 256M tmpfs on /tmp. /dev/shm: Chromium crashes on the 64M default.
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+        - name: config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  namespace: downloads
+spec:
+  type: ClusterIP
+  selector:
+    app: flaresolverr
+  ports:
+    - port: 8191
+      targetPort: 8191

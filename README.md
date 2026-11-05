@@ -34,7 +34,7 @@ devices/
 media/
   jellyfin/           media server on ephara (watch.pvc.tools); /data/media/watch on a static local PV
   sonarr/  radarr/    show and movie managers (admins only); hard-link imports from downloads/ into watch/
-  downloads/          Prowlarr (indexers) and qbit-public (qBittorrent behind PIA through gluetun)
+  downloads/          Prowlarr (indexers), FlareSolverr, and qbit-public (qBittorrent behind PIA through gluetun)
 security/
   cert-manager/  porkbun-webhook/   Helm apps (DNS-01 via Porkbun for the wildcard cert)
   issuers/            Let's Encrypt staging + prod ClusterIssuers
