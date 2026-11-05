@@ -1,5 +1,4 @@
-# downloads: Prowlarr (indexers) and qbit-public (qBittorrent behind PIA through gluetun).
-#   Sonarr and Radarr send releases here. Manifests in media/downloads.
+# downloads: Prowlarr, FlareSolverr and qbit-public (qBittorrent behind PIA). Manifests in media/downloads.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

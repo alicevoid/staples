@@ -1,6 +1,5 @@
-# prowlarr: indexer manager. Holds the indexer list and pushes it to Sonarr and Radarr
-#   (Settings > Apps, Full Sync). On ephara next to the other media apps, gated by Authelia
-#   (prowlarr.pvc.tools). No media mount: it only searches and hands over release links.
+# prowlarr: indexer manager. Pushes its indexers to Sonarr and Radarr (Full Sync).
+#   Gated by Authelia (prowlarr.pvc.tools). No media mount.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

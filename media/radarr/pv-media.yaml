@@ -1,7 +1,6 @@
-# /data/media on ephara, read-write, at the same path in the pod. watch/ and downloads/ are in
-#   this one mount, so an import from downloads/ is a hard link and a move is an instant rename.
-#   Radarr manages only the root folders set in its UI (under watch/). Never add oddities/ or extras/.
-#   Static local PV, bound only to radarr/media (claimRef). Retain: deleting the PVC never touches the files.
+# /data/media on ephara at the same path in the pod. watch/ and downloads/ share this mount, so
+#   imports are hard links. Never add oddities/ or extras/ as root folders.
+#   Bound only to radarr/media (claimRef). Retain: deleting the PVC keeps the files.
 apiVersion: v1
 kind: PersistentVolume
 metadata:

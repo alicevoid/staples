@@ -1,7 +1,5 @@
-# flaresolverr: opens Cloudflare-protected indexer pages in a headless Chromium and hands the
-#   cookies back to Prowlarr. Used only for indexers with the tag "flaresolverr" (Prowlarr >
-#   Settings > Indexers > Indexer Proxies). In-cluster only, no route: it has no login.
-#   Traffic goes out the home connection, like Prowlarr's own.
+# flaresolverr: solves Cloudflare challenges for Prowlarr indexers tagged "flaresolverr".
+#   In-cluster only (no login, so no route). Goes out the home connection.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,8 +19,8 @@ spec:
         pvc.tools/storage: "true"
       containers:
         - name: flaresolverr
-          # Runs as the image's own user (flaresolverr), which owns /app where Chromium keeps
-          #   its profile. The image names the user, not the UID, so runAsNonRoot cannot check it.
+          # The image's own non-root user owns /app (Chromium profile); it is named, not numbered,
+          #   so runAsNonRoot cannot verify it.
           image: ghcr.io/flaresolverr/flaresolverr:v3.5.2@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
           securityContext:
             allowPrivilegeEscalation: false
@@ -50,7 +48,7 @@ spec:
               cpu: 25m
               memory: 128Mi
             limits:
-              memory: 1Gi   # Chromium; about 10 to 30 MB per open request
+              memory: 1Gi
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -59,7 +57,7 @@ spec:
             - name: config
               mountPath: /config
       volumes:
-        # Upstream asks for a 256M tmpfs on /tmp. /dev/shm: Chromium crashes on the 64M default.
+        # Upstream wants a 256M tmpfs /tmp; Chromium crashes on the 64M default /dev/shm.
         - name: tmp
           emptyDir:
             medium: Memory
