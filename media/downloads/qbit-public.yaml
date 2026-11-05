@@ -1,0 +1,256 @@
+# qbit-public: qBittorrent for public torrents, behind PIA through gluetun. Sonarr and Radarr
+#   send releases here (categories sonarr, radarr; manual for hand-added torrents).
+#   gluetun changes only this pod's network: every packet out of the pod goes through the tunnel
+#   or is dropped. The Gateway, Tailscale, the other apps and the hosts keep their routes.
+#   Torrents download into /incomplete (NVMe), then move once to /data/media/downloads/public/<category>.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbit-public
+  namespace: downloads
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volumes: one pod at a time
+  selector:
+    matchLabels:
+      app: qbit-public
+  template:
+    metadata:
+      labels:
+        app: qbit-public
+    spec:
+      nodeSelector:
+        pvc.tools/storage: "true"
+      securityContext:
+        fsGroup: 2000
+        fsGroupChangePolicy: OnRootMismatch   # no walk over the whole downloads tree at each start
+      # Names resolve only through gluetun's DNS (127.0.0.1, over the tunnel). With the default
+      #   policy, lookups go to CoreDNS and out the home connection. qBittorrent needs no cluster names.
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 127.0.0.1
+      initContainers:
+        # Native sidecar (restartPolicy: Always): starts first and runs for the life of the pod.
+        #   qBittorrent starts only after the startup probe sees the tunnel up.
+        - name: gluetun
+          image: ghcr.io/qdm12/gluetun:v3.41.3@sha256:fa19cc76b2af13d57a8d3dc3066f2ada061b1c761b8aecf989b3877c0486e027
+          restartPolicy: Always
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: private internet access
+            - name: VPN_TYPE
+              value: openvpn   # gluetun's native PIA support is OpenVPN only
+            - name: OPENVPN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gluetun-pia
+                  key: username
+            - name: OPENVPN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gluetun-pia
+                  key: password
+            # PIA forwards ports only on non-US servers. The port stays the same for 60 days
+            #   while /gluetun is persistent.
+            - name: PORT_FORWARD_ONLY
+              value: "true"
+            - name: SERVER_REGIONS
+              value: CA Vancouver,CA Toronto,CA Montreal
+            - name: VPN_PORT_FORWARDING
+              value: "on"
+            # From the gluetun wiki (qBittorrent example). Up: set the forwarded port and bind
+            #   qBittorrent to the tunnel interface. Down: port 0 and interface lo, a second kill
+            #   switch inside qBittorrent. Needs "Bypass authentication for clients on localhost".
+            - name: VPN_PORT_FORWARDING_UP_COMMAND
+              value: >-
+                /bin/sh -c 'wget -O- -nv --retry-connrefused --post-data "json={\"listen_port\":{{PORT}},\"current_network_interface\":\"{{VPN_INTERFACE}}\",\"random_port\":false,\"upnp\":false}" http://127.0.0.1:8080/api/v2/app/setPreferences'
+            - name: VPN_PORT_FORWARDING_DOWN_COMMAND
+              value: >-
+                /bin/sh -c 'wget -O- -nv --retry-connrefused --post-data "json={\"listen_port\":0,\"current_network_interface\":\"lo\"}" http://127.0.0.1:8080/api/v2/app/setPreferences'
+            # Web UI in from Sonarr, Radarr, the Gateway and the kubelet probes.
+            - name: FIREWALL_INPUT_PORTS
+              value: "8080"
+            # Replies to pods (10.42) and Services (10.43) leave on eth0, not the tunnel. The
+            #   Gateway and the probes arrive from Cilium host addresses, which are in 10.42.
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: 10.42.0.0/16,10.43.0.0/16
+          # The health server listens on localhost only, so an httpGet probe cannot reach it.
+          startupProbe:
+            exec:
+              command: [ "/gluetun-entrypoint", "healthcheck" ]
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command: [ "/gluetun-entrypoint", "healthcheck" ]
+            periodSeconds: 30
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: gluetun
+              mountPath: /gluetun
+            - name: tun
+              mountPath: /dev/net/tun
+      containers:
+        - name: qbittorrent
+          image: ghcr.io/home-operations/qbittorrent:5.3.0@sha256:5a858e61f94cf2712391db32ed03556576c700858f3e62c4c6fcde262443ebd8
+          # umask 002: finished files are 664 group media. With fs.protected_hardlinks=1 on ephara,
+          #   Sonarr and Radarr can hard-link only files they can write; at 644 they silently copy.
+          #   The image has no UMASK setting, so wrap its entrypoint.
+          command: [ "/usr/bin/catatonit", "--", "/bin/bash", "-c", "umask 002 && exec /entrypoint.sh" ]
+          securityContext:
+            runAsUser: 2103
+            runAsGroup: 2000   # media
+            runAsNonRoot: true
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 30
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: incomplete
+              mountPath: /incomplete
+            - name: downloads
+              mountPath: /data/media/downloads
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbit-public-config
+        - name: incomplete
+          persistentVolumeClaim:
+            claimName: incomplete
+        - name: gluetun
+          persistentVolumeClaim:
+            claimName: gluetun
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: qbit-public-downloads
+        - name: tun
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+---
+# /data/media/downloads on ephara, at the same path in the pod, so Sonarr and Radarr need no
+#   remote path mappings. Only downloads/, never watch/: qBittorrent cannot touch the library.
+#   Static local PV, bound only to downloads/qbit-public-downloads (claimRef). Retain: deleting
+#   the PVC never touches the files.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: qbit-public-downloads
+spec:
+  capacity:
+    storage: 12Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: downloads
+    name: qbit-public-downloads
+  local:
+    path: /data/media/downloads
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ephara
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbit-public-downloads
+  namespace: downloads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: qbit-public-downloads
+  resources:
+    requests:
+      storage: 12Ti
+---
+# Config, Web UI login, torrent resume data. local-path on ephara's NVMe, backed up nightly.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbit-public-config
+  namespace: downloads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Unfinished torrents on the NVMe: random torrent writes would fragment tank's 1M records.
+#   local-path does not enforce the size. ephara-pvc-backup skips it (*_downloads_incomplete).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: incomplete
+  namespace: downloads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 300Gi
+---
+# gluetun state: keeps the PIA forwarded port for 60 days across restarts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gluetun
+  namespace: downloads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbit-public
+  namespace: downloads
+spec:
+  type: ClusterIP
+  selector:
+    app: qbit-public
+  ports:
+    - port: 8080
+      targetPort: 8080

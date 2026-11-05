@@ -1,14 +1,14 @@
-# Media (see pv-watch.yaml).
+# Media (see pv-media.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: watch
+  name: media
   namespace: radarr
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
-  volumeName: radarr-watch
+  volumeName: radarr-media
   resources:
     requests:
       storage: 12Ti

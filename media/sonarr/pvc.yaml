@@ -1,14 +1,14 @@
-# Media (see pv-watch.yaml).
+# Media (see pv-media.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: watch
+  name: media
   namespace: sonarr
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
-  volumeName: sonarr-watch
+  volumeName: sonarr-media
   resources:
     requests:
       storage: 12Ti

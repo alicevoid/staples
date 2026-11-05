@@ -1,0 +1,28 @@
+# /data/media on ephara, read-write, at the same path in the pod. watch/ and downloads/ are in
+#   this one mount, so an import from downloads/ is a hard link and a move is an instant rename.
+#   Sonarr manages only the root folders set in its UI (under watch/). Never add oddities/ or extras/.
+#   Static local PV, bound only to sonarr/media (claimRef). Retain: deleting the PVC never touches the files.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarr-media
+spec:
+  capacity:
+    storage: 12Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: sonarr
+    name: media
+  local:
+    path: /data/media
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - ephara

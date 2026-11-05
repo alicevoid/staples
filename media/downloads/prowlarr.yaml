@@ -1,0 +1,103 @@
+# prowlarr: indexer manager. Holds the indexer list and pushes it to Sonarr and Radarr
+#   (Settings > Apps, Full Sync). On ephara next to the other media apps, gated by Authelia
+#   (prowlarr.pvc.tools). No media mount: it only searches and hands over release links.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: downloads
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volume and a SQLite database: one pod at a time
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      nodeSelector:
+        pvc.tools/storage: "true"
+      securityContext:
+        runAsUser: 2104
+        runAsGroup: 2000
+        fsGroup: 2000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: prowlarr
+          image: ghcr.io/home-operations/prowlarr:3.0.0.5737@sha256:0954599432e16ccd86129f1eb8eb0247fd0d1591aab400f73e2010a1cda37be8
+          env:
+            - name: PROWLARR__SERVER__PORT
+              value: "9696"
+            # The image defaults to the develop branch. In-app update notices follow stable.
+            - name: PROWLARR__UPDATE__BRANCH
+              value: master
+            # Authelia guards the route, so Prowlarr trusts it instead of asking for its own login.
+            - name: PROWLARR__AUTH__METHOD
+              value: External
+            - name: PROWLARR__AUTH__REQUIRED
+              value: DisabledForLocalAddresses
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
+          ports:
+            - containerPort: 9696
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 9696
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 9696
+            periodSeconds: 30
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: host-ca
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-config
+        # host CA bundle from sutures (security.pki); restart the pod after a cacert update
+        - name: host-ca
+          hostPath:
+            path: /etc/ssl/certs/ca-certificates.crt
+            type: File
+---
+# Config and SQLite database. local-path on ephara's NVMe, backed up nightly by ephara-pvc-backup.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr-config
+  namespace: downloads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  namespace: downloads
+spec:
+  type: ClusterIP
+  selector:
+    app: prowlarr
+  ports:
+    - port: 9696
+      targetPort: 9696

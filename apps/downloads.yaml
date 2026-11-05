@@ -1,0 +1,24 @@
+# downloads: Prowlarr (indexers) and qbit-public (qBittorrent behind PIA through gluetun).
+#   Sonarr and Radarr send releases here. Manifests in media/downloads.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: downloads
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: media/downloads
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: downloads
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
