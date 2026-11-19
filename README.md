@@ -81,6 +81,7 @@ touches the Secret objects, so a sync or prune won't delete them.
 | `couchdb-secrets` | obsidian | CouchDB admin (username, password) for Obsidian LiveSync; also used by livesync-bridge |
 | `argocd-oidc` | argocd | ArgoCD OIDC client-secret (needs label `app.kubernetes.io/part-of=argocd`) |
 | `porkbun-api-credentials` | cert-manager | Porkbun DNS-01 webhook (api-key, secret-key) |
+| `gluetun-pia` | downloads | gluetun in qbit-public: PIA login (username, password) |
 | `livesync-bridge-config` | obsidian | livesync-bridge `config.json` (couchdb peer creds + mindvirus<->/srv/vaults storage peer) |
 
 To change one: `sops secrets/cluster/<name>.yaml` (or `<name>.<file>.bin`) in `sutures` on athreos,
