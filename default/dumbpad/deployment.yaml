@@ -52,7 +52,7 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
-            # the paste look, from kustomization.yaml
+            # theme files and the edited index.html (dumbpad-custom, see kustomization.yaml)
             - name: custom
               mountPath: /app/public/custom
               readOnly: true
