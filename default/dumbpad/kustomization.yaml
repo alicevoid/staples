@@ -1,5 +1,5 @@
-# custom/ holds the paste look: theme.css, the header dog, and a patched index.html.
-# index.html is DumbPad 1.0.5's copy with 5 small edits (search "paste" and "custom/").
+# custom/ holds the paste look: theme.css, the header dog, the notepad picker, and a patched index.html.
+# index.html is DumbPad 1.0.5's copy with 6 small edits (search "paste" and "custom/").
 # On a DumbPad upgrade, take the new index.html and re-apply those edits.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -16,4 +16,5 @@ configMapGenerator:
       - custom/index.html
       - custom/theme.css
       - custom/dog.js
+      - custom/select.js
       - custom/ascii_animator.js
