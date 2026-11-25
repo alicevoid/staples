@@ -37,6 +37,13 @@
     --dpd_danger-status-bg: rgba(220, 38, 38, 0.5);
     --dpd_code-markdown: rgba(96, 165, 250, 0.2);
 
+    /* Silica, light (from pvc.dog). Text is 3.5:1 on the editor; #5E5958 gives 5.3:1. */
+    --sil_accent: #D1D5BA;
+    --sil_content: #e1e4d0;
+    --sil_header-bg: #D1D5BA;   /* pvc.dog's header: accent background */
+    --sil_text: #7B7574;
+    --sil_link: #A2A497;
+
     /* Fonts. Berkeley Mono is used only where it is installed (desktop license: not served). */
     --font-mono: "Berkeley Mono", "BerkeleyMono Nerd Font", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
@@ -45,17 +52,18 @@
 }
 
 /* ==========================================================================================
-   ACTIVE PALETTE: change the prefix (dpl_ / dpd_) on each line to switch palettes
+   ACTIVE PALETTE: point each line at a palette variable to switch palettes.
+   Light mode uses Silica for surfaces and text, and keeps DumbPad's blue and red.
    ========================================================================================== */
 html[data-theme="light"] {
-    --bg-color: var(--dpl_bg);
-    --text-color: var(--dpl_text);
+    --bg-color: var(--sil_accent);
+    --text-color: var(--sil_text);
     --primary-color: var(--dpl_primary);
-    --secondary-color: var(--dpl_secondary);
-    --header-bg: var(--dpl_header-bg);
-    --textarea-bg: var(--dpl_textarea-bg);
-    --modal-bg: var(--dpl_modal-bg);
-    --button-hover: var(--dpl_button-hover);
+    --secondary-color: var(--sil_link);
+    --header-bg: var(--sil_header-bg);
+    --textarea-bg: var(--sil_content);
+    --modal-bg: var(--sil_content);
+    --button-hover: var(--sil_link);
     --danger-color: var(--dpl_danger);
     --danger-hover: var(--dpl_danger-hover);
     --success-status-bg: var(--dpl_success-status-bg);
@@ -87,14 +95,13 @@ body, body * {
 }
 
 /* ==========================================================================================
-   SQUARE CORNERS: everything, except real circles
+   SQUARE CORNERS: everything (the settings switches too), except real circles
    ========================================================================================== */
 *, *::before, *::after {
     border-radius: 0 !important;
 }
 
 .remote-cursor::before,
-#settings-modal input[type="checkbox"]:after,
 #settings-modal input[type="radio"],
 #settings-modal input[type="radio"]:checked::after {
     border-radius: 50% !important;
