@@ -29,6 +29,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       namespace: downloads
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: dumbpad
   to:
     - group: ""
       kind: Service

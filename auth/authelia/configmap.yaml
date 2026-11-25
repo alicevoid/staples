@@ -36,7 +36,7 @@ data:
           subject:
             - group:friends
             - group:admins
-        # admin UIs (argocd, hubble, sonarr, radarr, prowlarr, qbit): admins only (no friends). Still 2FA.
+        # admin UIs (argocd, hubble, sonarr, radarr, prowlarr, qbit) and Alice's paste: admins only (no friends). Still 2FA.
         - domain:
             - argocd.pvc.tools
             - hubble.pvc.tools
@@ -44,6 +44,7 @@ data:
             - radarr.pvc.tools
             - prowlarr.pvc.tools
             - qbit.pvc.tools
+            - paste.pvc.tools
           policy: two_factor
           subject:
             - group:admins

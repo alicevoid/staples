@@ -1,0 +1,58 @@
+# dumbpad: notepads at paste.pvc.tools. Data (notepads.json + one .txt per notepad) on the dumbpad-data PVC.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dumbpad
+  namespace: dumbpad
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volume: one pod at a time
+  selector:
+    matchLabels:
+      app: dumbpad
+  template:
+    metadata:
+      labels:
+        app: dumbpad
+    spec:
+      securityContext:
+        runAsUser: 1000   # the image's node user
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: dumbpad
+          image: dumbwareio/dumbpad:1.0.5@sha256:495a109141c28d990fedb9ed06e2d68db08a898b493479cdb12132d90f99d708
+          env:
+            - name: BASE_URL
+              value: https://paste.pvc.tools
+            - name: SITE_TITLE
+              value: paste
+            # no DUMBPAD_PIN: Authelia is the gate.
+            # ALLOWED_ORIGINS stays "*": a strict list checks Referer, falls back to http://<host>, and blocks requests without one.
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 10m
+              memory: 48Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: dumbpad-data

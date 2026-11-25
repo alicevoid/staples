@@ -1,0 +1,23 @@
+# dumbpad: notepad at paste.pvc.tools (1 PVC). Manifests in default/dumbpad.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dumbpad
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/alicevoid/staples
+    targetRevision: main
+    path: default/dumbpad
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dumbpad
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
