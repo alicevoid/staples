@@ -1,6 +1,5 @@
-# custom/ holds the paste look: theme.css, the header dog, the notepad picker, and a patched index.html.
-# index.html is DumbPad 1.0.5's copy with 6 small edits (search "paste" and "custom/").
-# On a DumbPad upgrade, take the new index.html and re-apply those edits.
+# custom/index.html is DumbPad 1.0.5's with 6 edits (search "paste" and "custom/").
+# Redo them on a DumbPad upgrade.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: dumbpad
@@ -10,7 +9,7 @@ resources:
   - service.yaml
   - deployment.yaml
 configMapGenerator:
-  # the name gets a content hash, so any change here restarts the pod
+  # hashed name: a change restarts the pod
   - name: dumbpad-custom
     files:
       - custom/index.html

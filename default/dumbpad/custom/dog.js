@@ -1,5 +1,4 @@
-// Header dog for paste.pvc.tools. Static by default; the Settings toggle turns the animation on.
-// The choice is per browser (localStorage). The animator is pvc.dog's, compiled to ascii_animator.js.
+// Header dog: static unless the Settings toggle is on (saved per browser).
 import { AsciiAnimator, TICK_INTERVAL_MS } from './ascii_animator.js';
 
 const KEY = 'paste_animate_dog';
@@ -15,7 +14,7 @@ function load() {
 }
 
 function save(on) {
-    try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch { /* private mode: not saved */ }
+    try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch { /* storage blocked: not saved */ }
 }
 
 function start() {

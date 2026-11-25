@@ -1,10 +1,7 @@
-/* paste.pvc.tools theme. Loads after DumbPad's own CSS, so these rules win.
-   This file is not in the service worker cache: a normal reload shows a change. */
+/* paste theme. Loads after DumbPad's CSS, so these rules win. */
 
 /* ==========================================================================================
-   PALETTES
-   One block per palette and mode. To add a palette: copy a pair of blocks, change the
-   prefix and the values, then point ACTIVE PALETTE (below) at the new prefix.
+   PALETTES: to add one, copy a block with a new prefix, then point ACTIVE PALETTE at it
    ========================================================================================== */
 :root {
     /* DumbPad default, light */
@@ -40,23 +37,21 @@
     /* Silica, light (from pvc.dog). Text is 3.5:1 on the editor; #5E5958 gives 5.3:1. */
     --sil_accent: #D1D5BA;
     --sil_content: #e1e4d0;
-    --sil_header-bg: #D1D5BA;   /* pvc.dog's header: accent background */
+    --sil_header-bg: #D1D5BA;
     --sil_text: #7B7574;
     --sil_link: #A2A497;
 
     /* Shared by both modes */
     --pst_code-markdown: rgba(37, 235, 170, 0.08);
 
-    /* Fonts. Berkeley Mono is used only where it is installed (desktop license: not served). */
+    /* Berkeley Mono only where installed: its desktop license does not cover serving it */
     --font-mono: "Berkeley Mono", "BerkeleyMono Nerd Font", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-    /* Space around the editor */
     --gutter: 0.75rem;
 }
 
 /* ==========================================================================================
-   ACTIVE PALETTE: point each line at a palette variable to switch palettes.
-   Light mode uses Silica for surfaces and text, and keeps DumbPad's blue and red.
+   ACTIVE PALETTE
    ========================================================================================== */
 html[data-theme="light"] {
     --bg-color: var(--sil_accent);
@@ -93,14 +88,14 @@ html[data-theme="dark"] {
 }
 
 /* ==========================================================================================
-   FONT: one monospace font for the whole app
+   FONT
    ========================================================================================== */
 body, body * {
     font-family: var(--font-mono) !important;
 }
 
 /* ==========================================================================================
-   SQUARE CORNERS: everything (the settings switches too), except real circles
+   SQUARE CORNERS, except real circles
    ========================================================================================== */
 *, *::before, *::after {
     border-radius: 0 !important;
@@ -113,7 +108,7 @@ body, body * {
 }
 
 /* ==========================================================================================
-   LAYOUT: full-width header, editor fills the rest of the screen
+   LAYOUT: full-width header, editor fills the rest
    ========================================================================================== */
 .container {
     max-width: none !important;
@@ -152,7 +147,7 @@ main {
 }
 
 /* ==========================================================================================
-   TOOLTIPS (button hover): editor background with a thin accent border
+   TOOLTIPS
    ========================================================================================== */
 .tooltip {
     background-color: var(--textarea-bg);
@@ -160,7 +155,7 @@ main {
 }
 
 /* ==========================================================================================
-   NOTEPAD PICKER (select.js): replaces the native select, whose popup cannot be styled
+   NOTEPAD PICKER (select.js)
    ========================================================================================== */
 #notepad-selector {
     display: none !important;

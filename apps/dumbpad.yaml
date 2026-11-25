@@ -1,4 +1,4 @@
-# dumbpad: notepad at paste.pvc.tools (1 PVC). Manifests in default/dumbpad.
+# dumbpad: notepads at paste.pvc.tools (1 PVC).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

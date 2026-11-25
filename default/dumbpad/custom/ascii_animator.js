@@ -1,4 +1,4 @@
-// Generated from pvc.dog src/lib/typescript/ascii_animator.ts with esbuild (--format=esm --target=es2020). Do not edit by hand.
+// Generated from pvc.dog's ascii_animator.ts: esbuild --format=esm --target=es2020. Do not edit.
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);

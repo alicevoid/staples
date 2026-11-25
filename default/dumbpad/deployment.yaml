@@ -1,4 +1,4 @@
-# dumbpad: notepads at paste.pvc.tools. Data (notepads.json + one .txt per notepad) on the dumbpad-data PVC.
+# dumbpad: notepads at paste.pvc.tools.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,7 +29,7 @@ spec:
             - name: SITE_TITLE
               value: '[UO\.0U]., ~#'
             # no DUMBPAD_PIN: Authelia is the gate.
-            # ALLOWED_ORIGINS stays "*": a strict list checks Referer, falls back to http://<host>, and blocks requests without one.
+            # ALLOWED_ORIGINS stays "*": a strict list blocks requests that have no Referer.
           ports:
             - containerPort: 3000
           readinessProbe:
@@ -52,7 +52,7 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
-            # the paste look (see kustomization.yaml)
+            # the paste look, from kustomization.yaml
             - name: custom
               mountPath: /app/public/custom
               readOnly: true

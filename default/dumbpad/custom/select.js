@@ -1,7 +1,5 @@
-// Notepad picker for paste.pvc.tools. Firefox cannot style a native <select> popup, so this draws
-// its own list and drives the hidden native select. DumbPad's app.js keeps using the select as-is:
-// a pick sets select.value and fires 'change'; app.js changes (new options, value, selectedIndex)
-// redraw the button.
+// Notepad picker. Firefox cannot style a native <select> popup, so this draws its own list
+// and drives the hidden select. app.js keeps using the select unchanged.
 const select = document.getElementById('notepad-selector');
 
 const picker = document.createElement('div');
@@ -17,7 +15,7 @@ list.setAttribute('role', 'listbox');
 list.hidden = true;
 picker.append(button, list);
 
-// app.js builds its tooltips at DOMContentLoaded, after this module runs: move the select's to the button
+// app.js sets up tooltips after this module runs, so the button inherits the select's
 for (const attr of ['data-tooltip', 'data-shortcuts']) {
     button.setAttribute(attr, select.getAttribute(attr));
     select.removeAttribute(attr);
@@ -86,11 +84,11 @@ button.addEventListener('keydown', (e) => {
 });
 document.addEventListener('click', (e) => { if (!picker.contains(e.target)) close(); });
 
-// redraw when app.js replaces the options (load, create, rename, delete)
+// app.js rebuilds the options on load, create, rename and delete
 new MutationObserver(() => { render(); if (!list.hidden) renderList(); })
     .observe(select, { childList: true, subtree: true, characterData: true, attributes: true });
 
-// redraw when app.js sets value or selectedIndex directly (these fire no event)
+// app.js also sets these directly, which fires no event
 for (const prop of ['value', 'selectedIndex']) {
     const native = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, prop);
     Object.defineProperty(select, prop, {
