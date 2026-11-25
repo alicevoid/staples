@@ -1,0 +1,140 @@
+/* paste.pvc.tools theme. Loads after DumbPad's own CSS, so these rules win.
+   This file is not in the service worker cache: a normal reload shows a change. */
+
+/* ==========================================================================================
+   PALETTES
+   One block per palette and mode. To add a palette: copy a pair of blocks, change the
+   prefix and the values, then point ACTIVE PALETTE (below) at the new prefix.
+   ========================================================================================== */
+:root {
+    /* DumbPad default, light */
+    --dpl_bg: #ffffff;
+    --dpl_text: #333333;
+    --dpl_primary: #2563eb;
+    --dpl_secondary: #e5e7eb;
+    --dpl_header-bg: #f8fafc;
+    --dpl_textarea-bg: #ffffff;
+    --dpl_modal-bg: #ffffff;
+    --dpl_button-hover: #f3f4f6;
+    --dpl_danger: #dc2626;
+    --dpl_danger-hover: #ef4444;
+    --dpl_success-status-bg: rgba(37, 99, 235, 0.5);
+    --dpl_danger-status-bg: rgba(220, 38, 38, 0.5);
+    --dpl_code-markdown: rgba(37, 100, 235, 0.2);
+
+    /* DumbPad default, dark */
+    --dpd_bg: #1a1a1a;
+    --dpd_text: #e5e7eb;
+    --dpd_primary: #60a5fa;
+    --dpd_secondary: #374151;
+    --dpd_header-bg: #111111;
+    --dpd_textarea-bg: #242424;
+    --dpd_modal-bg: #242424;
+    --dpd_button-hover: #374151;
+    --dpd_danger: #dc2626;
+    --dpd_danger-hover: #b91c1c;
+    --dpd_success-status-bg: rgba(96, 165, 250, 0.5);
+    --dpd_danger-status-bg: rgba(220, 38, 38, 0.5);
+    --dpd_code-markdown: rgba(96, 165, 250, 0.2);
+
+    /* Fonts. Berkeley Mono is used only where it is installed (desktop license: not served). */
+    --font-mono: "Berkeley Mono", "BerkeleyMono Nerd Font", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Space around the editor */
+    --gutter: 0.75rem;
+}
+
+/* ==========================================================================================
+   ACTIVE PALETTE: change the prefix (dpl_ / dpd_) on each line to switch palettes
+   ========================================================================================== */
+html[data-theme="light"] {
+    --bg-color: var(--dpl_bg);
+    --text-color: var(--dpl_text);
+    --primary-color: var(--dpl_primary);
+    --secondary-color: var(--dpl_secondary);
+    --header-bg: var(--dpl_header-bg);
+    --textarea-bg: var(--dpl_textarea-bg);
+    --modal-bg: var(--dpl_modal-bg);
+    --button-hover: var(--dpl_button-hover);
+    --danger-color: var(--dpl_danger);
+    --danger-hover: var(--dpl_danger-hover);
+    --success-status-bg: var(--dpl_success-status-bg);
+    --danger-status-bg: var(--dpl_danger-status-bg);
+    --code-markdown: var(--dpl_code-markdown);
+}
+
+html[data-theme="dark"] {
+    --bg-color: var(--dpd_bg);
+    --text-color: var(--dpd_text);
+    --primary-color: var(--dpd_primary);
+    --secondary-color: var(--dpd_secondary);
+    --header-bg: var(--dpd_header-bg);
+    --textarea-bg: var(--dpd_textarea-bg);
+    --modal-bg: var(--dpd_modal-bg);
+    --button-hover: var(--dpd_button-hover);
+    --danger-color: var(--dpd_danger);
+    --danger-hover: var(--dpd_danger-hover);
+    --success-status-bg: var(--dpd_success-status-bg);
+    --danger-status-bg: var(--dpd_danger-status-bg);
+    --code-markdown: var(--dpd_code-markdown);
+}
+
+/* ==========================================================================================
+   FONT: one monospace font for the whole app
+   ========================================================================================== */
+body, body * {
+    font-family: var(--font-mono) !important;
+}
+
+/* ==========================================================================================
+   SQUARE CORNERS: everything, except real circles
+   ========================================================================================== */
+*, *::before, *::after {
+    border-radius: 0 !important;
+}
+
+.remote-cursor::before,
+#settings-modal input[type="checkbox"]:after,
+#settings-modal input[type="radio"],
+#settings-modal input[type="radio"]:checked::after {
+    border-radius: 50% !important;
+}
+
+/* ==========================================================================================
+   LAYOUT: full-width header, editor fills the rest of the screen
+   ========================================================================================== */
+.container {
+    max-width: none !important;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+header {
+    margin: 0 !important;
+    box-shadow: none;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+#header-title {
+    white-space: pre;
+    font-weight: normal;
+}
+
+main {
+    flex: 1;
+    min-height: 0;
+    padding: var(--gutter);
+}
+
+.editor-preview-wrapper {
+    height: 100% !important;
+}
+
+.editor-container, .preview-container {
+    height: 100%;
+    max-height: none !important;
+    box-shadow: none !important;
+}
